@@ -4,6 +4,7 @@ use crate::dev::*;
 use rand::distributions::{Distribution, Standard};
 use rand::random;
 use std::hash::Hash;
+use std::collections::HashSet;
 
 struct Normal<VertexKey, Vertex, EdgeKey, Edge>
 where
@@ -117,5 +118,103 @@ impl<'a, Vk, V, Ek, E> Reference<'a, Vk, Ek> for Normal<Vk, V, Ek, E>
                 graph : self
             }
         )
+    }
+}
+
+impl <'a, Vk, V, Ek, E > VertexReference<'a, Vk, V, Ek, E >
+    where
+        Vk: 'a + Eq + Hash + Clone,
+        V : 'a,
+        Ek: 'a + Eq + Hash + Clone,
+        E : 'a,
+        Self : 'a{
+    pub fn data(&self) -> &'a V{
+        &self.graph.graph.vertices.get(self.key).unwrap().data
+    }
+    fn to(&self) -> Vec<(EdgeReference<'a, Vk, V, Ek, E >, Self)>{
+        if let Some(node) = self.graph.graph.vertices.get(self.key){
+            node.to.iter()
+                .flat_map(|x |self.graph.graph.edges.get(x).map(|y|(x,y)))
+                .map(|(key, node)| (
+                    self.graph.get_edge(key),
+                    self.graph.get_vertex(&node.to)
+                ))
+                .flat_map(|(x,y)|
+                    x.map(|a| y.map(|b| (a,b) )).flatten())
+                .collect()
+        }else{
+            Default::default()
+        }
+    }
+    fn from(&self) -> Vec<(EdgeReference<'a, Vk, V, Ek, E >, Self)>{
+        if let Some(node) = self.graph.graph.vertices.get(self.key){
+            node.from.iter()
+                .flat_map(|x |self.graph.graph.edges.get(x).map(|y|(x,y)))
+                .map(|(key, node)| (
+                    self.graph.get_edge(key),
+                    self.graph.get_vertex(&node.to)
+                ))
+                .flat_map(|(x,y)|
+                    x.map(|a| y.map(|b| (a,b) )).flatten())
+                .collect()
+        }else{
+            Default::default()
+        }
+    }
+
+}
+
+impl <'a, Vk, V, Ek, E > EdgeReference<'a, Vk, V, Ek, E >
+    where
+        Vk: Eq + Hash,
+        Ek: Eq + Hash,{
+    pub fn data(&self) -> &'a E{
+        &self.graph.graph.edges.get(self.key).unwrap().data
+    }
+
+}
+
+impl<'a, Vk, V, Ek, E> Neighbours<Directed> for VertexReference<'a, Vk, V, Ek, E>
+    where
+        Vk: 'a + Eq + Hash + Clone,
+        V : 'a,
+        Ek: 'a + Eq + Hash + Clone,
+        E : 'a,
+        Self : 'a{
+    type Edge = EdgeReference<'a, Vk, V, Ek, E>;
+    type IntoIter = Vec<(Self::Edge, Self)>;
+
+    fn neighbours(&self) -> Self::IntoIter {
+        self.to()
+    }
+}
+
+impl<'a, Vk, V, Ek, E> Neighbours<Undirected> for VertexReference<'a, Vk, V, Ek, E>
+    where
+        Vk: 'a + Eq + Hash + Clone,
+        V : 'a,
+        Ek: 'a + Eq + Hash + Clone,
+        E : 'a,
+        Self : 'a{
+    type Edge = EdgeReference<'a, Vk, V, Ek, E>;
+    type IntoIter = Vec<(Self::Edge, Self)>;
+
+    fn neighbours(&self) -> Self::IntoIter {
+        let mut out = self.to();
+        out.append(&mut self.from());
+        out
+    }
+}
+
+impl<'a, O, Vk, V, Ek, E> Cyclic<O> for Simple<Vk, V, Ek, E>
+    where
+        Vk: 'a + Eq + Hash + Clone,
+        V : 'a,
+        Ek: 'a + Eq + Hash + Clone,
+        E : 'a,
+        Self : 'a,
+        O : orientation::Orientation{
+    fn cyclic(&self) -> bool {
+        unimplemented!()
     }
 }

@@ -1,3 +1,5 @@
+use crate::dev::orientation::Orientation;
+
 pub mod simple;
 
 pub trait Reference<'a, VertexKey, EdgeKey> {
@@ -39,9 +41,20 @@ pub trait Builder<V> {
     fn add_vertex(&mut self, vertex: V) -> Self::VertexKey;
 }
 
-pub trait Neighbours {
-    type Vertex;
+pub trait Neighbours<O : Orientation>
+    where
+        Self : Sized{
     type Edge;
-    type Iter: IntoIterator<Item = (Self::Vertex, Self::Edge)>;
-    fn neighbours(&self) -> Self::Iter;
+    type IntoIter: IntoIterator<Item = (Self::Edge, Self)>;
+    fn neighbours(&self) -> Self::IntoIter;
+}
+
+pub trait Cyclic<O : Orientation>{
+    fn cyclic(&self) -> bool;
+}
+
+pub trait Dijkstra<O : Orientation>{
+    type Node : Neighbours<O>;
+    type IntoIter: IntoIterator<Item = Self::Node>;
+    fn dijkstra(from:Self::Node, to:Self::Node) -> Self::IntoIter;
 }
