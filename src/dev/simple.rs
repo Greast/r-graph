@@ -9,7 +9,7 @@ pub struct Node<Data, From, To> {
 }
 
 ///A simple graph implementation, where the key for each edge and vertex has to be supplied.
-#[derive(Default, Eq, PartialEq)]
+#[derive(Eq, PartialEq)]
 pub struct Simple<VertexKey, Vertex, EdgeKey, Edge>
 where
     VertexKey: Eq + Hash,
@@ -19,6 +19,18 @@ where
     pub edges: HashMap<EdgeKey, Node<Edge, VertexKey, VertexKey>>,
 }
 
+impl<VertexKey, Vertex, EdgeKey, Edge> Default for Simple<VertexKey, Vertex, EdgeKey, Edge>
+where
+    VertexKey: Eq + Hash,
+    EdgeKey: Eq + Hash,
+{
+    fn default() -> Self {
+        Self {
+            vertices: HashMap::new(),
+            edges: HashMap::new(),
+        }
+    }
+}
 impl<VertexKey, Vertex, EdgeKey, Edge> Simple<VertexKey, Vertex, EdgeKey, Edge>
 where
     VertexKey: Eq + Hash + Clone,

@@ -2,24 +2,42 @@ use crate::dev::orientation::Orientation;
 
 pub mod simple;
 
-pub trait Reference<'a, VertexKey, EdgeKey> {
+pub trait Reference<'a>{
+    type Key;
+    type Data;
+    fn key(&'a self) -> Self::Key;
+    fn data(&'a self) -> Self::Data;
+}
+
+impl <'a, I:Reference<'a>> Reference<'a> for Option<I>{
+    type Key = Option<<I as Reference<'a>>::Key>;
+    type Data = Option<<I as Reference<'a>>::Data>;
+
+    fn key(&'a self) -> Self::Key {
+        self.as_ref().map(Reference::key)
+    }
+
+    fn data(&'a self) -> Self::Data {
+        self.as_ref().map(Reference::data)
+    }
+}
+
+
+pub trait Getter<'a, VertexKey, EdgeKey> {
     type VertexReference;
     type EdgeReference;
     fn get_vertex(&'a self, vertex: &VertexKey) -> Self::VertexReference;
     fn get_edge(&'a self, edge: &EdgeKey) -> Self::EdgeReference;
 }
 
-pub mod unique {
-    pub trait Vertex {}
-    pub trait Edge {}
-}
-
 pub mod orientation {
     pub trait Orientation {}
 
+    #[derive(Default)]
     pub struct Directed;
     impl Orientation for Directed {}
 
+    #[derive(Default)]
     pub struct Undirected;
     impl Orientation for Undirected {}
 
@@ -41,20 +59,19 @@ pub trait Builder<V> {
     fn add_vertex(&mut self, vertex: V) -> Self::VertexKey;
 }
 
-pub trait Neighbours<O : Orientation>
-    where
-        Self : Sized{
+pub trait Neighbours<O: Orientation>
+where
+    Self: Sized,
+{
     type Edge;
     type IntoIter: IntoIterator<Item = (Self::Edge, Self)>;
     fn neighbours(&self) -> Self::IntoIter;
 }
 
-pub trait Cyclic<O : Orientation>{
-    fn cyclic(&self) -> bool;
+pub trait Travel<Edge>{
+    fn travel(&self, edge:Edge) -> Self;
 }
 
-pub trait Dijkstra<O : Orientation>{
-    type Node : Neighbours<O>;
-    type IntoIter: IntoIterator<Item = Self::Node>;
-    fn dijkstra(from:Self::Node, to:Self::Node) -> Self::IntoIter;
+pub trait Cyclic<O: Orientation> {
+    fn cyclic(&self) -> bool;
 }
