@@ -39,7 +39,7 @@ impl<Graph, Orientation, Value> Builder<Value> for Oriented<Graph, Orientation>
 {
     type Key = <Graph as Builder<Value>>::Key;
 
-    fn add_vertex(&mut self, value: Value) -> Option<Self::Key> {
+    fn add_vertex(&mut self, value: Value) -> Result<Self::Key, Value> {
         self.graph.add_vertex(value)
     }
 }
@@ -57,7 +57,7 @@ for Oriented<Graph, Orientation>
         from: &VertexKey,
         to: &VertexKey,
         value: Value,
-    ) -> Option<Self::EdgeKey> {
+    ) -> Result<Self::EdgeKey, Value> {
         self.graph.add_edge(from, to, value)
     }
 }

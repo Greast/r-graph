@@ -29,9 +29,9 @@ where
 {
     type Key = VertexKey;
 
-    fn add_vertex(&mut self, (key, data): (VertexKey, Vertex)) -> Option<Self::Key> {
+    fn add_vertex(&mut self, (key, data): (VertexKey, Vertex)) -> Result<Self::Key, (VertexKey, Vertex)> {
         if self.vertices.contains_key(&key) {
-            None
+            Err((key, data))
         } else {
             self.vertices.insert(
                 key.clone(),
@@ -41,7 +41,7 @@ where
                     to: Default::default(),
                 },
             );
-            Some(key)
+            Ok(key)
         }
     }
 }
@@ -53,9 +53,9 @@ where
 {
     type EdgeKey = Ek;
 
-    fn add_edge(&mut self, from: &Vk, to: &Vk, (key, data): (Ek, E)) -> Option<Self::EdgeKey> {
+    fn add_edge(&mut self, from: &Vk, to: &Vk, (key, data): (Ek, E)) -> Result<Self::EdgeKey, (Ek, E)> {
         if !self.vertices.contains_key(&from) {
-            return None;
+            return Err((key,data));
         }
 
         self.vertices.get_mut(&from).unwrap().to.insert(key.clone());
@@ -69,7 +69,7 @@ where
             },
         );
 
-        key.into()
+        Ok(key)
     }
 }
 
@@ -80,7 +80,7 @@ where
 {
     type EdgeKey = Ek;
 
-    fn add_edge(&mut self, from: &Vk, to: &Vk, (key, data): (Ek, E)) -> Option<Self::EdgeKey> {
+    fn add_edge(&mut self, from: &Vk, to: &Vk, (key, data): (Ek, E)) -> Result<Self::EdgeKey, (Ek, E)> {
         let output = Edge::<Directed, Vk, (Ek, E)>::add_edge(self, from, to, (key.clone(), data));
         self.vertices.get_mut(&to).unwrap().from.insert(key);
         output

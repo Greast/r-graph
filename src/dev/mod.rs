@@ -41,13 +41,13 @@ pub mod orientation {
             from: &VertexKey,
             to: &VertexKey,
             value: Edge,
-        ) -> Option<Self::EdgeKey>;
+        ) -> Result<Self::EdgeKey, Edge>;
     }
 }
 
 pub trait Builder<Input> {
     type Key;
-    fn add_vertex(&mut self, vertex: Input) -> Option<Self::Key>;
+    fn add_vertex(&mut self, vertex: Input) -> Result<Self::Key, Input>;
 }
 
 pub trait GetVertex<'a, Key> {

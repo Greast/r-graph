@@ -28,8 +28,12 @@ where
 {
     type Key = <Graph as Builder<(VertexKey, Value)>>::Key;
 
-    fn add_vertex(&mut self, value: Value) -> Option<Self::Key> {
-        self.graph.add_vertex((random(), value))
+    fn add_vertex(&mut self, value: Value) -> Result<Self::Key, Value> {
+        let mut output = self.graph.add_vertex((random(), value));
+        while let Err((_, value)) = output{
+            output = self.graph.add_vertex((random(), value));
+        }
+        output.map_err(|x| x.1)
     }
 }
 
@@ -46,7 +50,7 @@ where
         from: &VertexKey,
         to: &VertexKey,
         value: Value,
-    ) -> Option<Self::EdgeKey> {
+    ) -> Result<Self::EdgeKey, Value> {
         self.graph.add_edge(from, to, value)
     }
 }
