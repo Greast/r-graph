@@ -1,4 +1,4 @@
-use crate::dev::{orientation, GetEdge, GetEdgeTo, GetVertex, Neighbours};
+use crate::dev::{orientation, GetEdgeTo, Neighbours};
 
 pub struct VertexReference<'a, Key, Graph> {
     pub key: &'a Key,

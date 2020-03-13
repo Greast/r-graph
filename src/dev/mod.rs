@@ -1,5 +1,3 @@
-use crate::dev::orientation::Orientation;
-
 pub mod simple;
 
 ///Remove a vertex associated with the given key, along with all incoming and outgoing edges, from the graph.

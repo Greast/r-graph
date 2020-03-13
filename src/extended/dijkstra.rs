@@ -1,6 +1,5 @@
 use crate::dev::{orientation, GetEdge, Neighbours};
 use crate::extended::header::Header;
-use crate::reference::VertexReference;
 use std::cmp::Reverse;
 use std::collections::{BinaryHeap, HashMap};
 use std::hash::Hash;

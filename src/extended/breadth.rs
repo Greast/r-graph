@@ -98,7 +98,7 @@ mod tests {
     use crate::dev::simple::Simple;
     use crate::dev::Builder;
     use crate::graphs::oriented::Oriented;
-    use crate::dev::orientation::{Edge, Directed};
+    use crate::dev::orientation::Directed;
 
 
     #[test]
