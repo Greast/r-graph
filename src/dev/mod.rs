@@ -2,32 +2,27 @@ use crate::dev::orientation::Orientation;
 
 pub mod simple;
 
-pub trait Reference<'a>{
-    type Key;
-    type Data;
-    fn key(&'a self) -> Self::Key;
-    fn data(&'a self) -> Self::Data;
+///Remove a vertex associated with the given key, along with all incoming and outgoing edges, from the graph.
+pub trait RemoveVertex<Key> {
+    type Output;
+    fn remove_vertex(&mut self, key: &Key) -> Option<Self::Output>;
 }
 
-impl <'a, I:Reference<'a>> Reference<'a> for Option<I>{
-    type Key = Option<<I as Reference<'a>>::Key>;
-    type Data = Option<<I as Reference<'a>>::Data>;
-
-    fn key(&'a self) -> Self::Key {
-        self.as_ref().map(Reference::key)
-    }
-
-    fn data(&'a self) -> Self::Data {
-        self.as_ref().map(Reference::data)
-    }
+///Remove an edge associated with the given key.
+pub trait RemoveEdge<Key> {
+    type Output;
+    fn remove_edge(&mut self, key: &Key) -> Option<Self::Output>;
 }
 
-
-pub trait Getter<'a, VertexKey, EdgeKey> {
-    type VertexReference;
-    type EdgeReference;
-    fn get_vertex(&'a self, vertex: &VertexKey) -> Self::VertexReference;
-    fn get_edge(&'a self, edge: &EdgeKey) -> Self::EdgeReference;
+///Neighbours of the vertex associated with the given key, with the Orientation type, determining if the neighbours are directed or not.
+pub trait Neighbours<'a, Orientation, VertexKey>
+where
+    VertexKey: 'a,
+    Orientation: orientation::Orientation,
+{
+    type Edge;
+    type IntoIter: IntoIterator<Item = (Self::Edge, &'a VertexKey)>;
+    fn neighbours(&'a self, vertex: &VertexKey) -> Option<Self::IntoIter>;
 }
 
 pub mod orientation {
@@ -41,37 +36,33 @@ pub mod orientation {
     pub struct Undirected;
     impl Orientation for Undirected {}
 
-    pub trait Edge<O: Orientation> {
-        type VertexKey;
+    pub trait Edge<O: Orientation, VertexKey, Edge> {
         type EdgeKey;
-        type Edge;
         fn add_edge(
             &mut self,
-            from: &Self::VertexKey,
-            to: &Self::VertexKey,
-            value: Self::Edge,
-        ) -> Self::EdgeKey;
+            from: &VertexKey,
+            to: &VertexKey,
+            value: Edge,
+        ) -> Option<Self::EdgeKey>;
     }
 }
 
-pub trait Builder<V> {
-    type VertexKey;
-    fn add_vertex(&mut self, vertex: V) -> Self::VertexKey;
+pub trait Builder<Input> {
+    type Key;
+    fn add_vertex(&mut self, vertex: Input) -> Option<Self::Key>;
 }
 
-pub trait Neighbours<O: Orientation>
-where
-    Self: Sized,
-{
-    type Edge;
-    type IntoIter: IntoIterator<Item = (Self::Edge, Self)>;
-    fn neighbours(&self) -> Self::IntoIter;
+pub trait GetVertex<'a, Key> {
+    type Output;
+    fn get_vertex(&'a self, key: &Key) -> Option<Self::Output>;
 }
 
-pub trait Travel<Edge>{
-    fn travel(&self, edge:Edge) -> Self;
+pub trait GetEdge<'a, Key> {
+    type Output;
+    fn get_edge(&'a self, key: &Key) -> Option<Self::Output>;
 }
 
-pub trait Cyclic<O: Orientation> {
-    fn cyclic(&self) -> bool;
+pub trait GetEdgeTo<'a, Key> {
+    type Output;
+    fn get_edge_to(&'a self, key: &Key) -> Option<Self::Output>;
 }

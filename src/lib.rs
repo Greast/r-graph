@@ -1,8 +1,8 @@
 pub mod dev;
 pub mod extended;
-pub mod normal;
-pub mod path;
-pub mod space;
+pub mod graphs;
+pub mod reference;
+
 #[cfg(test)]
 mod tests {
     #[test]
