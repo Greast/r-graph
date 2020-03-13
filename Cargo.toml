@@ -1,10 +1,12 @@
 [package]
 name = "r-graph"
-version = "0.1.0"
+version = "0.0.1"
+
 authors = ["Greast <jonas.jonas.srensen11@gmail.com>"]
 edition = "2018"
 repository = "https://github.com/Greast/r-graph"
 license = "MIT"
+
 keywords = ["graph"]
 description = "Modular Graph library for Rust-lang"
 
