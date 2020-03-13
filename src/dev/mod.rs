@@ -12,7 +12,7 @@ pub trait RemoveEdge<Key> {
     fn remove_edge(&mut self, key: &Key) -> Option<Self::Output>;
 }
 
-///Neighbours of the vertex associated with the given key, with the Orientation type, determining if the neighbours are directed or not.
+///Neighbours of the vertex associated with the given key, with the Orientation type, determining if the edges are directed or not.
 pub trait Neighbours<'a, Orientation, VertexKey>
 where
     VertexKey: 'a,
