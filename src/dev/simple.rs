@@ -1,5 +1,5 @@
 use crate::dev::orientation::{Directed, Edge, Undirected};
-use crate::dev::{Builder, GetEdge, GetEdgeTo, GetVertex, Neighbours, RemoveEdge, RemoveVertex};
+use crate::dev::{Builder, GetEdge, GetEdgeTo, GetVertex, Neighbours, RemoveEdge, RemoveVertex, Vertices, Edges};
 use std::collections::{HashMap, HashSet};
 use std::hash::Hash;
 
@@ -225,5 +225,28 @@ where
             .flat_map(|key| Some((key, &self.edges.get(key)?.to)));
 
         to.chain(from).collect::<Vec<_>>().into()
+    }
+}
+
+
+impl<'a, VertexKey, Vertex, EdgeKey, Edge> Vertices<'a, VertexKey> for Simple<VertexKey, Vertex, EdgeKey, Edge>
+    where
+        VertexKey: Eq + Hash + 'a,
+        EdgeKey: Eq + Hash ,{
+    type Output = HashSet<&'a VertexKey>;
+
+    fn vertices(&'a self) -> Self::Output {
+        self.vertices.keys().collect()
+    }
+}
+
+impl<'a, VertexKey, Vertex, EdgeKey, Edge> Edges<'a, EdgeKey> for Simple<VertexKey, Vertex, EdgeKey, Edge>
+    where
+        VertexKey: Eq + Hash ,
+        EdgeKey: Eq + Hash + 'a ,{
+    type Output = HashSet<&'a EdgeKey>;
+
+    fn edges(&'a self) -> Self::Output {
+        self.edges.keys().collect()
     }
 }

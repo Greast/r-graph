@@ -64,3 +64,17 @@ pub trait GetEdgeTo<'a, Key> {
     type Output;
     fn get_edge_to(&'a self, key: &Key) -> Option<Self::Output>;
 }
+
+pub trait Vertices<'a, Key>
+    where
+        Key : 'a{
+    type Output : IntoIterator<Item = &'a Key>;
+    fn vertices(&'a self) -> Self::Output ;
+}
+
+pub trait Edges<'a, Key>
+    where
+        Key : 'a{
+    type Output : IntoIterator<Item = &'a Key>;
+    fn edges(&'a self) -> Self::Output ;
+}

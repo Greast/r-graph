@@ -1,7 +1,5 @@
 use crate::dev::orientation::Edge;
-use crate::dev::{
-    orientation, Builder, GetEdge, GetEdgeTo, GetVertex, Neighbours, RemoveEdge, RemoveVertex,
-};
+use crate::dev::{orientation, Builder, GetEdge, GetEdgeTo, GetVertex, Neighbours, RemoveEdge, RemoveVertex, Edges, Vertices};
 
 ///The edges for this graph are hashed along with its from-node, allowing for graphs such as those found in deterministic automaton.
 #[derive(Clone, Debug, Eq, PartialEq, Default)]
@@ -106,5 +104,27 @@ where
 
     fn neighbours(&'a self, key: &Key) -> Option<Self::IntoIter> {
         self.graph.neighbours(key)
+    }
+}
+
+impl <'a, Key, Graph> Vertices<'a, Key> for Path<Graph>
+    where
+        Key : 'a,
+        Graph : Vertices<'a, Key>{
+    type Output = <Graph as Vertices<'a, Key>>::Output;
+
+    fn vertices(&'a self) -> Self::Output {
+        self.graph.vertices()
+    }
+}
+
+impl <'a, Key, Graph> Edges<'a, Key> for Path<Graph>
+    where
+        Key : 'a,
+        Graph : Edges<'a, Key>{
+    type Output = <Graph as Edges<'a, Key>>::Output;
+
+    fn edges(&'a self) -> Self::Output {
+        self.graph.edges()
     }
 }

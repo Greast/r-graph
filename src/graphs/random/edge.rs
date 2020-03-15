@@ -1,7 +1,5 @@
 use crate::dev::orientation::Edge as EdgeTrait;
-use crate::dev::{
-    orientation, Builder, GetEdge, GetEdgeTo, GetVertex, Neighbours, RemoveEdge, RemoveVertex,
-};
+use crate::dev::{orientation, Builder, GetEdge, GetEdgeTo, GetVertex, Neighbours, RemoveEdge, RemoveVertex, Edges, Vertices};
 use rand::distributions::{Distribution, Standard};
 use rand::random;
 use std::marker::PhantomData;
@@ -123,5 +121,27 @@ where
 
     fn neighbours(&'a self, key: &VertexKey) -> Option<Self::IntoIter> {
         self.graph.neighbours(key)
+    }
+}
+
+impl <'a, Key, Graph, EdgeKey> Vertices<'a, Key> for Edge<Graph, EdgeKey>
+    where
+        Key : 'a,
+        Graph : Vertices<'a, Key>{
+    type Output = <Graph as Vertices<'a, Key>>::Output;
+
+    fn vertices(&'a self) -> Self::Output {
+        self.graph.vertices()
+    }
+}
+
+impl <'a, Key, Graph, EdgeKey> Edges<'a, Key> for Edge<Graph, EdgeKey>
+    where
+        Key : 'a,
+        Graph : Edges<'a, Key>{
+    type Output = <Graph as Edges<'a, Key>>::Output;
+
+    fn edges(&'a self) -> Self::Output {
+        self.graph.edges()
     }
 }

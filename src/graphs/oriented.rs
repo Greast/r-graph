@@ -1,4 +1,4 @@
-use crate::dev::{Builder, orientation, RemoveVertex, RemoveEdge, GetVertex, GetEdge, GetEdgeTo, Neighbours};
+use crate::dev::{Builder, orientation, RemoveVertex, RemoveEdge, GetVertex, GetEdge, GetEdgeTo, Neighbours, Vertices, Edges};
 use crate::dev::orientation::Edge;
 
 
@@ -128,5 +128,27 @@ impl<'a, Graph, VertexKey, Orientation> Neighbours<'a, Orientation, VertexKey> f
 
     fn neighbours(&'a self, key: &VertexKey) -> Option<Self::IntoIter> {
         self.graph.neighbours(key)
+    }
+}
+
+impl <'a, Key, Graph, Orientation> Vertices<'a, Key> for Oriented<Graph, Orientation>
+    where
+        Key : 'a,
+        Graph : Vertices<'a, Key>{
+    type Output = <Graph as Vertices<'a, Key>>::Output;
+
+    fn vertices(&'a self) -> Self::Output {
+        self.graph.vertices()
+    }
+}
+
+impl <'a, Key, Graph, Orientation> Edges<'a, Key> for Oriented<Graph, Orientation>
+    where
+        Key : 'a,
+        Graph : Edges<'a, Key>{
+    type Output = <Graph as Edges<'a, Key>>::Output;
+
+    fn edges(&'a self) -> Self::Output {
+        self.graph.edges()
     }
 }
