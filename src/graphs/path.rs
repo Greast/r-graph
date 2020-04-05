@@ -1,5 +1,7 @@
+use std::ops::{Deref, DerefMut};
+
+use crate::dev::{Builder, Edges, GetEdge, GetEdgeTo, GetVertex, Neighbours, orientation, RemoveEdge, RemoveVertex, Vertices};
 use crate::dev::orientation::Edge;
-use crate::dev::{orientation, Builder, GetEdge, GetEdgeTo, GetVertex, Neighbours, RemoveEdge, RemoveVertex, Edges, Vertices};
 
 ///The edges for this graph are hashed along with its from-node, allowing for graphs such as those found in deterministic automaton.
 #[derive(Clone, Debug, Eq, PartialEq, Default)]
@@ -7,9 +9,23 @@ pub struct Path<Graph> {
     graph: Graph,
 }
 
+impl<Graph> Deref for Path<Graph> {
+    type Target = Graph;
+
+    fn deref(&self) -> &Self::Target {
+        &self.graph
+    }
+}
+
+impl<Graph> DerefMut for Path<Graph>{
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.graph
+    }
+}
+
 impl<Graph, Input> Builder<Input> for Path<Graph>
-where
-    Graph: Builder<Input>,
+    where
+        Graph: Builder<Input>,
 {
     type Key = <Graph as Builder<Input>>::Key;
 
@@ -17,6 +33,7 @@ where
         self.graph.add_vertex(vertex)
     }
 }
+
 
 impl<Orientation, Graph, VertexKey, EdgeKey, Value> Edge<Orientation, VertexKey, (EdgeKey, Value)>
     for Path<Graph>

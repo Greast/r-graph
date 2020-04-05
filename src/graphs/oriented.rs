@@ -1,5 +1,6 @@
 use crate::dev::{Builder, orientation, RemoveVertex, RemoveEdge, GetVertex, GetEdge, GetEdgeTo, Neighbours, Vertices, Edges};
 use crate::dev::orientation::Edge;
+use std::ops::{Deref, DerefMut};
 
 
 pub trait Orient<Orientation>
@@ -23,6 +24,19 @@ pub struct Oriented<Graph, Orientation>{
     orientation : Orientation,
 }
 
+impl<Graph, Orientation> Deref for Oriented<Graph, Orientation> {
+    type Target = Graph;
+
+    fn deref(&self) -> &Self::Target {
+        &self.graph
+    }
+}
+
+impl<Graph, Orientation> DerefMut for Oriented<Graph, Orientation>{
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.graph
+    }
+}
 
 impl<Graph, Orientation> Oriented<Graph, Orientation> {
     pub fn new(graph: Graph, orientation:Orientation) -> Self {
