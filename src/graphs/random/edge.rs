@@ -3,11 +3,26 @@ use crate::dev::{orientation, Builder, GetEdge, GetEdgeTo, GetVertex, Neighbours
 use rand::distributions::{Distribution, Standard};
 use rand::random;
 use std::marker::PhantomData;
+use std::ops::{Deref, DerefMut};
 
 #[derive(Clone, Debug, Eq, PartialEq, Default)]
 pub struct Edge<Graph, EdgeKey = usize> {
     graph: Graph,
     edge_key: PhantomData<EdgeKey>,
+}
+
+impl<Graph, EdgeKey> Deref for Edge<Graph, EdgeKey> {
+    type Target = Graph;
+
+    fn deref(&self) -> &Self::Target {
+        &self.graph
+    }
+}
+
+impl<Graph, EdgeKey> DerefMut for Edge<Graph, EdgeKey> {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.graph
+    }
 }
 
 impl<Graph, EdgeKey> From<Graph> for Edge<Graph, EdgeKey> {
