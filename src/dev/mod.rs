@@ -1,5 +1,5 @@
 pub mod simple;
-
+pub mod node;
 ///Remove a vertex associated with the given key, along with all incoming and outgoing edges, from the graph.
 pub trait RemoveVertex<Key> {
     type Output;

@@ -2,13 +2,7 @@ use crate::dev::orientation::{Directed, Edge, Undirected};
 use crate::dev::{Builder, GetEdge, GetEdgeTo, GetVertex, Neighbours, RemoveEdge, RemoveVertex, Vertices, Edges};
 use std::collections::{HashMap, HashSet};
 use std::hash::Hash;
-
-#[derive(Clone, Debug, Eq, PartialEq, Default)]
-pub struct Node<Data, From, To> {
-    pub data: Data,
-    pub from: From,
-    pub to: To,
-}
+use crate::dev::node::Node;
 
 ///A simple graph implementation, where the key for each edge and vertex has to be supplied.
 #[derive(Clone, Debug, Eq, PartialEq, Default)]
