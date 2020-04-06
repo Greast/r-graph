@@ -1,8 +1,9 @@
 use crate::dev::orientation::{Directed, Edge, Undirected};
 use crate::dev::{Builder, GetEdge, GetEdgeTo, GetVertex, Neighbours, RemoveEdge, RemoveVertex, Vertices, Edges};
-use std::collections::{HashMap, HashSet};
+use std::collections::{HashMap, HashSet, hash_map};
 use std::hash::Hash;
 use crate::dev::node::Node;
+use crate::dev::edge_graph::{IntoEdgeGraph, EdgeGraph};
 
 ///A simple graph implementation, where the key for each edge and vertex has to be supplied.
 #[derive(Clone, Debug, Eq, PartialEq, Default)]
@@ -242,5 +243,25 @@ impl<'a, VertexKey, Vertex, EdgeKey, Edge> Edges<'a, EdgeKey> for Simple<VertexK
 
     fn edges(&'a self) -> Self::Output {
         self.edges.keys().collect()
+    }
+}
+
+impl<VertexKey, Vertex, EdgeKey, Edge> IntoEdgeGraph<VertexKey, Vertex, EdgeKey, Edge> for Simple<VertexKey, Vertex, EdgeKey, Edge>
+    where
+        VertexKey : Eq + Hash,
+        EdgeKey : Eq + Hash,{
+    type VertexIntoIter = impl IntoIterator<Item = (VertexKey, Vertex)>;
+    type EdgeIntoIter = hash_map::IntoIter<EdgeKey, Node<Edge, VertexKey, VertexKey>>;
+
+    fn edge_graph(self) -> EdgeGraph<VertexKey, Vertex, EdgeKey, Edge, Self::VertexIntoIter, Self::EdgeIntoIter> {
+        let vertex_into_iter = self.vertices.into_iter().map(|(key, value)|
+            (key, value.data)
+        );
+        let edge_into_iter = self.edges.into_iter();
+
+        EdgeGraph{
+            vertex_into_iter,
+            edge_into_iter
+        }
     }
 }
