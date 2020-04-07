@@ -4,7 +4,7 @@ use crate::dev::transform::{mapping, Map};
 use crate::dev::{
     Builder, Edges, GetEdge, GetEdgeTo, GetVertex, Neighbours, RemoveEdge, RemoveVertex, Vertices,
 };
-use std::collections::{hash_map, HashMap, HashSet};
+use std::collections::{HashMap, HashSet};
 use std::hash::Hash;
 
 ///A simple graph implementation, where the key for each edge and vertex has to be supplied.
