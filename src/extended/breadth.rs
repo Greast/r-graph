@@ -104,8 +104,8 @@ mod tests {
     fn simple_test() {
         let mut disconnected: Oriented<Simple<_, _, (), ()>, _> =
             Oriented::new(Simple::default(), Directed);
-        let a = disconnected.add_vertex((0, "0")).unwrap().clone();
-        let b = disconnected.add_vertex((1, "1")).unwrap().clone();
+        let a = disconnected.add_vertex((0, ())).unwrap().clone();
+        let b = disconnected.add_vertex((1, ())).unwrap().clone();
 
         assert_eq!(disconnected.breadth_search(&a).to(&b), None)
     }
