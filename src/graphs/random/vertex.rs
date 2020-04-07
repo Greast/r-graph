@@ -1,5 +1,8 @@
 use crate::dev::orientation::Edge;
-use crate::dev::{orientation, Builder, GetEdge, GetEdgeTo, GetVertex, Neighbours, RemoveEdge, RemoveVertex, Vertices, Edges};
+use crate::dev::{
+    orientation, Builder, Edges, GetEdge, GetEdgeTo, GetVertex, Neighbours, RemoveEdge,
+    RemoveVertex, Vertices,
+};
 use rand::distributions::{Distribution, Standard};
 use rand::random;
 use std::marker::PhantomData;
@@ -43,7 +46,7 @@ where
 
     fn add_vertex(&mut self, value: Value) -> Result<Self::Key, Value> {
         let mut output = self.graph.add_vertex((random(), value));
-        while let Err((_, value)) = output{
+        while let Err((_, value)) = output {
             output = self.graph.add_vertex((random(), value));
         }
         output.map_err(|x| x.1)
@@ -138,10 +141,11 @@ where
     }
 }
 
-impl <'a, Key, Graph, VertexKey> Vertices<'a, Key> for Vertex<Graph, VertexKey>
-    where
-        Key : 'a,
-        Graph : Vertices<'a, Key>{
+impl<'a, Key, Graph, VertexKey> Vertices<'a, Key> for Vertex<Graph, VertexKey>
+where
+    Key: 'a,
+    Graph: Vertices<'a, Key>,
+{
     type Output = <Graph as Vertices<'a, Key>>::Output;
 
     fn vertices(&'a self) -> Self::Output {
@@ -149,10 +153,11 @@ impl <'a, Key, Graph, VertexKey> Vertices<'a, Key> for Vertex<Graph, VertexKey>
     }
 }
 
-impl <'a, Key, Graph, VertexKey> Edges<'a, Key> for Vertex<Graph, VertexKey>
-    where
-        Key : 'a,
-        Graph : Edges<'a, Key>{
+impl<'a, Key, Graph, VertexKey> Edges<'a, Key> for Vertex<Graph, VertexKey>
+where
+    Key: 'a,
+    Graph: Edges<'a, Key>,
+{
     type Output = <Graph as Edges<'a, Key>>::Output;
 
     fn edges(&'a self) -> Self::Output {

@@ -1,7 +1,10 @@
 use std::ops::{Deref, DerefMut};
 
-use crate::dev::{Builder, Edges, GetEdge, GetEdgeTo, GetVertex, Neighbours, orientation, RemoveEdge, RemoveVertex, Vertices};
 use crate::dev::orientation::Edge;
+use crate::dev::{
+    orientation, Builder, Edges, GetEdge, GetEdgeTo, GetVertex, Neighbours, RemoveEdge,
+    RemoveVertex, Vertices,
+};
 
 ///The edges for this graph are hashed along with its from-node, allowing for graphs such as those found in deterministic automaton.
 #[derive(Clone, Debug, Eq, PartialEq, Default)]
@@ -17,15 +20,15 @@ impl<Graph> Deref for Path<Graph> {
     }
 }
 
-impl<Graph> DerefMut for Path<Graph>{
+impl<Graph> DerefMut for Path<Graph> {
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.graph
     }
 }
 
 impl<Graph, Input> Builder<Input> for Path<Graph>
-    where
-        Graph: Builder<Input>,
+where
+    Graph: Builder<Input>,
 {
     type Key = <Graph as Builder<Input>>::Key;
 
@@ -33,7 +36,6 @@ impl<Graph, Input> Builder<Input> for Path<Graph>
         self.graph.add_vertex(vertex)
     }
 }
-
 
 impl<Orientation, Graph, VertexKey, EdgeKey, Value> Edge<Orientation, VertexKey, (EdgeKey, Value)>
     for Path<Graph>
@@ -51,7 +53,9 @@ where
         to: &VertexKey,
         (key, value): (EdgeKey, Value),
     ) -> Result<Self::EdgeKey, (EdgeKey, Value)> {
-        self.graph.add_edge(from, to, ((from.clone(), key), value)).map_err(|((_,x),y)|(x,y))
+        self.graph
+            .add_edge(from, to, ((from.clone(), key), value))
+            .map_err(|((_, x), y)| (x, y))
     }
 }
 
@@ -124,10 +128,11 @@ where
     }
 }
 
-impl <'a, Key, Graph> Vertices<'a, Key> for Path<Graph>
-    where
-        Key : 'a,
-        Graph : Vertices<'a, Key>{
+impl<'a, Key, Graph> Vertices<'a, Key> for Path<Graph>
+where
+    Key: 'a,
+    Graph: Vertices<'a, Key>,
+{
     type Output = <Graph as Vertices<'a, Key>>::Output;
 
     fn vertices(&'a self) -> Self::Output {
@@ -135,10 +140,11 @@ impl <'a, Key, Graph> Vertices<'a, Key> for Path<Graph>
     }
 }
 
-impl <'a, Key, Graph> Edges<'a, Key> for Path<Graph>
-    where
-        Key : 'a,
-        Graph : Edges<'a, Key>{
+impl<'a, Key, Graph> Edges<'a, Key> for Path<Graph>
+where
+    Key: 'a,
+    Graph: Edges<'a, Key>,
+{
     type Output = <Graph as Edges<'a, Key>>::Output;
 
     fn edges(&'a self) -> Self::Output {
