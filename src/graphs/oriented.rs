@@ -1,27 +1,31 @@
-use crate::dev::{Builder, orientation, RemoveVertex, RemoveEdge, GetVertex, GetEdge, GetEdgeTo, Neighbours, Vertices, Edges};
 use crate::dev::orientation::Edge;
+use crate::dev::{
+    orientation, Builder, Edges, GetEdge, GetEdgeTo, GetVertex, Neighbours, RemoveEdge,
+    RemoveVertex, Vertices,
+};
 use std::ops::{Deref, DerefMut};
 
-
 pub trait Orient<Orientation>
-    where Self : Sized{
-    fn orient(self, orientation:Orientation) -> Oriented<Self, Orientation>;
+where
+    Self: Sized,
+{
+    fn orient(self, orientation: Orientation) -> Oriented<Self, Orientation>;
 }
 
-impl<T, O> Orient<O> for T{
+impl<T, O> Orient<O> for T {
     fn orient(self, orientation: O) -> Oriented<Self, O> {
-        Oriented{
-            graph : self,
-            orientation
+        Oriented {
+            graph: self,
+            orientation,
         }
     }
 }
 
 ///This graph fixes the edge orientation for the supplied graph.
 #[derive(Clone, Debug, Eq, PartialEq, Default)]
-pub struct Oriented<Graph, Orientation>{
-    graph : Graph,
-    orientation : Orientation,
+pub struct Oriented<Graph, Orientation> {
+    graph: Graph,
+    orientation: Orientation,
 }
 
 impl<Graph, Orientation> Deref for Oriented<Graph, Orientation> {
@@ -32,24 +36,21 @@ impl<Graph, Orientation> Deref for Oriented<Graph, Orientation> {
     }
 }
 
-impl<Graph, Orientation> DerefMut for Oriented<Graph, Orientation>{
+impl<Graph, Orientation> DerefMut for Oriented<Graph, Orientation> {
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.graph
     }
 }
 
 impl<Graph, Orientation> Oriented<Graph, Orientation> {
-    pub fn new(graph: Graph, orientation:Orientation) -> Self {
-        Self {
-            graph,
-            orientation
-        }
+    pub fn new(graph: Graph, orientation: Orientation) -> Self {
+        Self { graph, orientation }
     }
 }
 
 impl<Graph, Orientation, Value> Builder<Value> for Oriented<Graph, Orientation>
-    where
-        Graph: Builder<Value>,
+where
+    Graph: Builder<Value>,
 {
     type Key = <Graph as Builder<Value>>::Key;
 
@@ -59,10 +60,10 @@ impl<Graph, Orientation, Value> Builder<Value> for Oriented<Graph, Orientation>
 }
 
 impl<Graph, VertexKey, Value, Orientation> Edge<Orientation, VertexKey, Value>
-for Oriented<Graph, Orientation>
-    where
-        Orientation: orientation::Orientation,
-        Graph: Edge<Orientation, VertexKey, Value>,
+    for Oriented<Graph, Orientation>
+where
+    Orientation: orientation::Orientation,
+    Graph: Edge<Orientation, VertexKey, Value>,
 {
     type EdgeKey = <Graph as Edge<Orientation, VertexKey, Value>>::EdgeKey;
 
@@ -77,8 +78,8 @@ for Oriented<Graph, Orientation>
 }
 
 impl<Graph, Orientation, VertexKey> RemoveVertex<VertexKey> for Oriented<Graph, Orientation>
-    where
-        Graph: RemoveVertex<VertexKey>,
+where
+    Graph: RemoveVertex<VertexKey>,
 {
     type Output = <Graph as RemoveVertex<VertexKey>>::Output;
 
@@ -88,8 +89,8 @@ impl<Graph, Orientation, VertexKey> RemoveVertex<VertexKey> for Oriented<Graph, 
 }
 
 impl<Graph, Orientation, EdgeKey> RemoveEdge<EdgeKey> for Oriented<Graph, Orientation>
-    where
-        Graph: RemoveEdge<EdgeKey>,
+where
+    Graph: RemoveEdge<EdgeKey>,
 {
     type Output = <Graph as RemoveEdge<EdgeKey>>::Output;
 
@@ -99,8 +100,8 @@ impl<Graph, Orientation, EdgeKey> RemoveEdge<EdgeKey> for Oriented<Graph, Orient
 }
 
 impl<'a, Graph, Orientation, VertexKey> GetVertex<'a, VertexKey> for Oriented<Graph, Orientation>
-    where
-        Graph: GetVertex<'a, VertexKey>,
+where
+    Graph: GetVertex<'a, VertexKey>,
 {
     type Output = <Graph as GetVertex<'a, VertexKey>>::Output;
 
@@ -110,8 +111,8 @@ impl<'a, Graph, Orientation, VertexKey> GetVertex<'a, VertexKey> for Oriented<Gr
 }
 
 impl<'a, Graph, Orientation, EdgeKey> GetEdge<'a, EdgeKey> for Oriented<Graph, Orientation>
-    where
-        Graph: GetEdge<'a, EdgeKey>,
+where
+    Graph: GetEdge<'a, EdgeKey>,
 {
     type Output = <Graph as GetEdge<'a, EdgeKey>>::Output;
 
@@ -121,8 +122,8 @@ impl<'a, Graph, Orientation, EdgeKey> GetEdge<'a, EdgeKey> for Oriented<Graph, O
 }
 
 impl<'a, Graph, Orientation, EdgeKey> GetEdgeTo<'a, EdgeKey> for Oriented<Graph, Orientation>
-    where
-        Graph: GetEdgeTo<'a, EdgeKey>,
+where
+    Graph: GetEdgeTo<'a, EdgeKey>,
 {
     type Output = <Graph as GetEdgeTo<'a, EdgeKey>>::Output;
 
@@ -131,11 +132,12 @@ impl<'a, Graph, Orientation, EdgeKey> GetEdgeTo<'a, EdgeKey> for Oriented<Graph,
     }
 }
 
-impl<'a, Graph, VertexKey, Orientation> Neighbours<'a, Orientation, VertexKey> for Oriented<Graph, Orientation>
-    where
-        VertexKey: 'a,
-        Orientation: orientation::Orientation,
-        Graph: Neighbours<'a, Orientation, VertexKey>,
+impl<'a, Graph, VertexKey, Orientation> Neighbours<'a, Orientation, VertexKey>
+    for Oriented<Graph, Orientation>
+where
+    VertexKey: 'a,
+    Orientation: orientation::Orientation,
+    Graph: Neighbours<'a, Orientation, VertexKey>,
 {
     type Edge = <Graph as Neighbours<'a, Orientation, VertexKey>>::Edge;
     type IntoIter = <Graph as Neighbours<'a, Orientation, VertexKey>>::IntoIter;
@@ -145,10 +147,11 @@ impl<'a, Graph, VertexKey, Orientation> Neighbours<'a, Orientation, VertexKey> f
     }
 }
 
-impl <'a, Key, Graph, Orientation> Vertices<'a, Key> for Oriented<Graph, Orientation>
-    where
-        Key : 'a,
-        Graph : Vertices<'a, Key>{
+impl<'a, Key, Graph, Orientation> Vertices<'a, Key> for Oriented<Graph, Orientation>
+where
+    Key: 'a,
+    Graph: Vertices<'a, Key>,
+{
     type Output = <Graph as Vertices<'a, Key>>::Output;
 
     fn vertices(&'a self) -> Self::Output {
@@ -156,10 +159,11 @@ impl <'a, Key, Graph, Orientation> Vertices<'a, Key> for Oriented<Graph, Orienta
     }
 }
 
-impl <'a, Key, Graph, Orientation> Edges<'a, Key> for Oriented<Graph, Orientation>
-    where
-        Key : 'a,
-        Graph : Edges<'a, Key>{
+impl<'a, Key, Graph, Orientation> Edges<'a, Key> for Oriented<Graph, Orientation>
+where
+    Key: 'a,
+    Graph: Edges<'a, Key>,
+{
     type Output = <Graph as Edges<'a, Key>>::Output;
 
     fn edges(&'a self) -> Self::Output {

@@ -95,15 +95,15 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::dev::orientation::Directed;
     use crate::dev::simple::Simple;
     use crate::dev::Builder;
     use crate::graphs::oriented::Oriented;
-    use crate::dev::orientation::Directed;
-
 
     #[test]
     fn simple_test() {
-        let mut disconnected:Oriented<Simple<_,_,(),()>,_> = Oriented::new(Simple::default(), Directed);
+        let mut disconnected: Oriented<Simple<_, _, (), ()>, _> =
+            Oriented::new(Simple::default(), Directed);
         let a = disconnected.add_vertex((0, "0")).unwrap().clone();
         let b = disconnected.add_vertex((1, "1")).unwrap().clone();
 
