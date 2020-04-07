@@ -1,8 +1,11 @@
-use crate::dev::orientation::{Directed, Edge, Undirected};
-use crate::dev::{Builder, GetEdge, GetEdgeTo, GetVertex, Neighbours, RemoveEdge, RemoveVertex, Vertices, Edges};
-use std::collections::{HashMap, HashSet};
-use std::hash::Hash;
 use crate::dev::node::Node;
+use crate::dev::orientation::{Directed, Edge, Undirected};
+use crate::dev::transform::{mapping, Map};
+use crate::dev::{
+    Builder, Edges, GetEdge, GetEdgeTo, GetVertex, Neighbours, RemoveEdge, RemoveVertex, Vertices,
+};
+use std::collections::{hash_map, HashMap, HashSet};
+use std::hash::Hash;
 
 ///A simple graph implementation, where the key for each edge and vertex has to be supplied.
 #[derive(Clone, Debug, Eq, PartialEq, Default)]
@@ -23,7 +26,10 @@ where
 {
     type Key = VertexKey;
 
-    fn add_vertex(&mut self, (key, data): (VertexKey, Vertex)) -> Result<Self::Key, (VertexKey, Vertex)> {
+    fn add_vertex(
+        &mut self,
+        (key, data): (VertexKey, Vertex),
+    ) -> Result<Self::Key, (VertexKey, Vertex)> {
         if self.vertices.contains_key(&key) {
             Err((key, data))
         } else {
@@ -47,9 +53,14 @@ where
 {
     type EdgeKey = Ek;
 
-    fn add_edge(&mut self, from: &Vk, to: &Vk, (key, data): (Ek, E)) -> Result<Self::EdgeKey, (Ek, E)> {
+    fn add_edge(
+        &mut self,
+        from: &Vk,
+        to: &Vk,
+        (key, data): (Ek, E),
+    ) -> Result<Self::EdgeKey, (Ek, E)> {
         if !self.vertices.contains_key(&from) {
-            return Err((key,data));
+            return Err((key, data));
         }
 
         self.vertices.get_mut(&from).unwrap().to.insert(key.clone());
@@ -74,7 +85,12 @@ where
 {
     type EdgeKey = Ek;
 
-    fn add_edge(&mut self, from: &Vk, to: &Vk, (key, data): (Ek, E)) -> Result<Self::EdgeKey, (Ek, E)> {
+    fn add_edge(
+        &mut self,
+        from: &Vk,
+        to: &Vk,
+        (key, data): (Ek, E),
+    ) -> Result<Self::EdgeKey, (Ek, E)> {
         let output = Edge::<Directed, Vk, (Ek, E)>::add_edge(self, from, to, (key.clone(), data));
         self.vertices.get_mut(&to).unwrap().from.insert(key);
         output
@@ -222,11 +238,12 @@ where
     }
 }
 
-
-impl<'a, VertexKey, Vertex, EdgeKey, Edge> Vertices<'a, VertexKey> for Simple<VertexKey, Vertex, EdgeKey, Edge>
-    where
-        VertexKey: Eq + Hash + 'a,
-        EdgeKey: Eq + Hash ,{
+impl<'a, VertexKey, Vertex, EdgeKey, Edge> Vertices<'a, VertexKey>
+    for Simple<VertexKey, Vertex, EdgeKey, Edge>
+where
+    VertexKey: Eq + Hash + 'a,
+    EdgeKey: Eq + Hash,
+{
     type Output = HashSet<&'a VertexKey>;
 
     fn vertices(&'a self) -> Self::Output {
@@ -234,13 +251,226 @@ impl<'a, VertexKey, Vertex, EdgeKey, Edge> Vertices<'a, VertexKey> for Simple<Ve
     }
 }
 
-impl<'a, VertexKey, Vertex, EdgeKey, Edge> Edges<'a, EdgeKey> for Simple<VertexKey, Vertex, EdgeKey, Edge>
-    where
-        VertexKey: Eq + Hash ,
-        EdgeKey: Eq + Hash + 'a ,{
+impl<'a, VertexKey, Vertex, EdgeKey, Edge> Edges<'a, EdgeKey>
+    for Simple<VertexKey, Vertex, EdgeKey, Edge>
+where
+    VertexKey: Eq + Hash,
+    EdgeKey: Eq + Hash + 'a,
+{
     type Output = HashSet<&'a EdgeKey>;
 
     fn edges(&'a self) -> Self::Output {
         self.edges.keys().collect()
+    }
+}
+
+pub struct Mapper<VertexKey, Vertex, EdgeKey, Edge, VertexIntoIter, EdgeIntoIter>
+where
+    VertexIntoIter:
+        IntoIterator<Item = (VertexKey, Node<Vertex, HashSet<EdgeKey>, HashSet<EdgeKey>>)>,
+    EdgeIntoIter: IntoIterator<Item = (EdgeKey, Node<Edge, VertexKey, VertexKey>)>,
+{
+    pub vertices: VertexIntoIter,
+    pub edges: EdgeIntoIter,
+}
+
+impl<VertexKey, Vertex, EdgeKey, Edge> Map for Simple<VertexKey, Vertex, EdgeKey, Edge>
+where
+    VertexKey: 'static + Eq + Hash,
+    EdgeKey: 'static + Eq + Hash,
+    Vertex: 'static,
+    Edge: 'static,
+{
+    type Mapper = Mapper<
+        VertexKey,
+        Vertex,
+        EdgeKey,
+        Edge,
+        Box<dyn Iterator<Item = (VertexKey, Node<Vertex, HashSet<EdgeKey>, HashSet<EdgeKey>>)>>,
+        Box<dyn Iterator<Item = (EdgeKey, Node<Edge, VertexKey, VertexKey>)>>,
+    >;
+
+    fn map(self) -> Self::Mapper {
+        Mapper {
+            vertices: Box::new(self.vertices.into_iter()),
+            edges: Box::new(self.edges.into_iter()),
+        }
+    }
+}
+use super::transform::Mapper as MapperTrait;
+
+impl<VertexKey, Vertex, EdgeKey, Edge, VertexIntoIter, EdgeIntoIter, VertexKey2, Func>
+    MapperTrait<mapping::VertexKey, VertexKey, VertexKey2, Func>
+    for Mapper<VertexKey, Vertex, EdgeKey, Edge, VertexIntoIter, EdgeIntoIter>
+where
+    VertexIntoIter:
+        IntoIterator<Item = (VertexKey, Node<Vertex, HashSet<EdgeKey>, HashSet<EdgeKey>>)>,
+    EdgeIntoIter: IntoIterator<Item = (EdgeKey, Node<Edge, VertexKey, VertexKey>)>,
+    <VertexIntoIter as std::iter::IntoIterator>::IntoIter: 'static,
+    <EdgeIntoIter as std::iter::IntoIterator>::IntoIter: 'static,
+    Func: 'static + Copy,
+{
+    type Output = Mapper<
+        VertexKey2,
+        Vertex,
+        EdgeKey,
+        Edge,
+        Box<dyn Iterator<Item = (VertexKey2, Node<Vertex, HashSet<EdgeKey>, HashSet<EdgeKey>>)>>,
+        Box<dyn Iterator<Item = (EdgeKey, Node<Edge, VertexKey2, VertexKey2>)>>,
+    >;
+
+    fn map(self, function: Func) -> Self::Output
+    where
+        Func: Fn(VertexKey) -> VertexKey2,
+    {
+        let vertices = Box::new(
+            self.vertices
+                .into_iter()
+                .map(move |(key, node)| (function(key), node)),
+        );
+        let edges = Box::new(self.edges.into_iter().map(move |(key, node)| {
+            (
+                key,
+                Node {
+                    data: node.data,
+                    from: function(node.from),
+                    to: function(node.to),
+                },
+            )
+        }));
+        Mapper { vertices, edges }
+    }
+}
+
+impl<VertexKey, Vertex, EdgeKey, Edge, VertexIntoIter, EdgeIntoIter, Vertex2, Func>
+    MapperTrait<mapping::Vertex, Vertex, Vertex2, Func>
+    for Mapper<VertexKey, Vertex, EdgeKey, Edge, VertexIntoIter, EdgeIntoIter>
+where
+    VertexIntoIter:
+        IntoIterator<Item = (VertexKey, Node<Vertex, HashSet<EdgeKey>, HashSet<EdgeKey>>)>,
+    EdgeIntoIter: IntoIterator<Item = (EdgeKey, Node<Edge, VertexKey, VertexKey>)>,
+    <VertexIntoIter as std::iter::IntoIterator>::IntoIter: 'static,
+    <EdgeIntoIter as std::iter::IntoIterator>::IntoIter: 'static,
+    Func: 'static + Copy,
+{
+    type Output = Mapper<
+        VertexKey,
+        Vertex2,
+        EdgeKey,
+        Edge,
+        Box<dyn Iterator<Item = (VertexKey, Node<Vertex2, HashSet<EdgeKey>, HashSet<EdgeKey>>)>>,
+        Box<dyn Iterator<Item = (EdgeKey, Node<Edge, VertexKey, VertexKey>)>>,
+    >;
+
+    fn map(self, function: Func) -> Self::Output
+    where
+        Func: Fn(Vertex) -> Vertex2,
+    {
+        let vertices = Box::new(self.vertices.into_iter().map(move |(key, node)| {
+            (
+                key,
+                Node {
+                    data: function(node.data),
+                    from: node.from,
+                    to: node.to,
+                },
+            )
+        }));
+        Mapper {
+            vertices,
+            edges: Box::new(self.edges.into_iter()),
+        }
+    }
+}
+
+impl<VertexKey, Vertex, EdgeKey, Edge, VertexIntoIter, EdgeIntoIter, EdgeKey2, Func>
+    MapperTrait<mapping::EdgeKey, EdgeKey, EdgeKey2, Func>
+    for Mapper<VertexKey, Vertex, EdgeKey, Edge, VertexIntoIter, EdgeIntoIter>
+where
+    VertexIntoIter:
+        IntoIterator<Item = (VertexKey, Node<Vertex, HashSet<EdgeKey>, HashSet<EdgeKey>>)>,
+    EdgeIntoIter: IntoIterator<Item = (EdgeKey, Node<Edge, VertexKey, VertexKey>)>,
+    <VertexIntoIter as std::iter::IntoIterator>::IntoIter: 'static,
+    <EdgeIntoIter as std::iter::IntoIterator>::IntoIter: 'static,
+    Func: 'static + Copy,
+    EdgeKey2: Eq + Hash,
+{
+    type Output = Mapper<
+        VertexKey,
+        Vertex,
+        EdgeKey2,
+        Edge,
+        Box<
+            dyn Iterator<
+                Item = (
+                    VertexKey,
+                    Node<Vertex, HashSet<EdgeKey2>, HashSet<EdgeKey2>>,
+                ),
+            >,
+        >,
+        Box<dyn Iterator<Item = (EdgeKey2, Node<Edge, VertexKey, VertexKey>)>>,
+    >;
+
+    fn map(self, function: Func) -> Self::Output
+    where
+        Func: Fn(EdgeKey) -> EdgeKey2,
+    {
+        let vertices = Box::new(self.vertices.into_iter().map(move |(key, node)| {
+            (
+                key,
+                Node {
+                    data: node.data,
+                    from: node.from.into_iter().map(function).collect(),
+                    to: node.to.into_iter().map(function).collect(),
+                },
+            )
+        }));
+        let edges = Box::new(
+            self.edges
+                .into_iter()
+                .map(move |(key, node)| (function(key), node)),
+        );
+        Mapper { vertices, edges }
+    }
+}
+
+impl<VertexKey, Vertex, EdgeKey, Edge, VertexIntoIter, EdgeIntoIter, Edge2, Func>
+    MapperTrait<mapping::Edge, Edge, Edge2, Func>
+    for Mapper<VertexKey, Vertex, EdgeKey, Edge, VertexIntoIter, EdgeIntoIter>
+where
+    VertexIntoIter:
+        IntoIterator<Item = (VertexKey, Node<Vertex, HashSet<EdgeKey>, HashSet<EdgeKey>>)>,
+    EdgeIntoIter: IntoIterator<Item = (EdgeKey, Node<Edge, VertexKey, VertexKey>)>,
+    <VertexIntoIter as std::iter::IntoIterator>::IntoIter: 'static,
+    <EdgeIntoIter as std::iter::IntoIterator>::IntoIter: 'static,
+    Func: 'static + Copy,
+{
+    type Output = Mapper<
+        VertexKey,
+        Vertex,
+        EdgeKey,
+        Edge2,
+        Box<dyn Iterator<Item = (VertexKey, Node<Vertex, HashSet<EdgeKey>, HashSet<EdgeKey>>)>>,
+        Box<dyn Iterator<Item = (EdgeKey, Node<Edge2, VertexKey, VertexKey>)>>,
+    >;
+
+    fn map(self, function: Func) -> Self::Output
+    where
+        Func: Fn(Edge) -> Edge2,
+    {
+        let edges = Box::new(self.edges.into_iter().map(move |(key, node)| {
+            (
+                key,
+                Node {
+                    data: function(node.data),
+                    from: node.from,
+                    to: node.to,
+                },
+            )
+        }));
+        Mapper {
+            vertices: Box::new(self.vertices.into_iter()),
+            edges,
+        }
     }
 }

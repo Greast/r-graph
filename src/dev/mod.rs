@@ -1,5 +1,6 @@
-pub mod simple;
 pub mod node;
+pub mod simple;
+pub mod transform;
 ///Remove a vertex associated with the given key, along with all incoming and outgoing edges, from the graph.
 pub trait RemoveVertex<Key> {
     type Output;
@@ -66,15 +67,17 @@ pub trait GetEdgeTo<'a, Key> {
 }
 
 pub trait Vertices<'a, Key>
-    where
-        Key : 'a{
-    type Output : IntoIterator<Item = &'a Key>;
-    fn vertices(&'a self) -> Self::Output ;
+where
+    Key: 'a,
+{
+    type Output: IntoIterator<Item = &'a Key>;
+    fn vertices(&'a self) -> Self::Output;
 }
 
 pub trait Edges<'a, Key>
-    where
-        Key : 'a{
-    type Output : IntoIterator<Item = &'a Key>;
-    fn edges(&'a self) -> Self::Output ;
+where
+    Key: 'a,
+{
+    type Output: IntoIterator<Item = &'a Key>;
+    fn edges(&'a self) -> Self::Output;
 }

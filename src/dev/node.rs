@@ -4,4 +4,3 @@ pub struct Node<Data, From, To> {
     pub from: From,
     pub to: To,
 }
-
