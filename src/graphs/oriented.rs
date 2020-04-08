@@ -1,6 +1,6 @@
 use crate::dev::orientation::Edge;
 use crate::dev::{
-    orientation, Builder, Edges, GetEdge, GetEdgeTo, GetVertex, Neighbours, RemoveEdge,
+    orientation, Builder, Edges, GetEdge, GetEdgeTo, GetVertex, Merge, Neighbours, RemoveEdge,
     RemoveVertex, Vertices,
 };
 use std::ops::{Deref, DerefMut};
@@ -168,5 +168,21 @@ where
 
     fn edges(&'a self) -> Self::Output {
         self.graph.edges()
+    }
+}
+
+impl<Graph, Orientation> Merge for Oriented<Graph, Orientation>
+where
+    Graph: Merge,
+{
+    fn merge(self, other: Self) -> Result<Self, (Self, Self)> {
+        let output = self.graph.merge(other.graph);
+        match output {
+            Ok(x) => Ok(Self::new(x, self.orientation)),
+            Err((x, y)) => Err((
+                Self::new(x, self.orientation),
+                Self::new(y, other.orientation),
+            )),
+        }
     }
 }

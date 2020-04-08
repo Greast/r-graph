@@ -1,8 +1,5 @@
 use crate::dev::orientation::Edge;
-use crate::dev::{
-    orientation, Builder, Edges, GetEdge, GetEdgeTo, GetVertex, Neighbours, RemoveEdge,
-    RemoveVertex, Vertices,
-};
+use crate::dev::{orientation, Builder, Edges, GetEdge, GetEdgeTo, GetVertex, Neighbours, RemoveEdge, RemoveVertex, Vertices, Merge};
 use rand::distributions::{Distribution, Standard};
 use rand::random;
 use std::marker::PhantomData;
@@ -164,3 +161,20 @@ where
         self.graph.edges()
     }
 }
+
+impl<Graph, VertexKey> Merge for Vertex<Graph, VertexKey>
+    where
+        Graph: Merge,
+{
+    fn merge(self, other: Self) -> Result<Self, (Self, Self)> {
+        let output = self.graph.merge(other.graph);
+        match output {
+            Ok(x) => Ok(x.into()),
+            Err((x, y)) => Err((
+                x.into(),
+                y.into(),
+            )),
+        }
+    }
+}
+
