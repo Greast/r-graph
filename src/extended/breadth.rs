@@ -98,7 +98,7 @@ mod tests {
     use crate::dev::orientation::Directed;
     use crate::dev::simple::Simple;
     use crate::dev::Builder;
-    use crate::graphs::oriented::Oriented;
+    use crate::wrapper::oriented::Oriented;
 
     #[test]
     fn simple_test() {

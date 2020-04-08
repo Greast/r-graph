@@ -2,7 +2,7 @@ use std::ops::{Deref, DerefMut};
 use crate::dev::orientation::Edge;
 use crate::dev::{orientation, Builder, Edges, GetEdge, GetEdgeTo, GetVertex, Neighbours, RemoveEdge, RemoveVertex, Vertices, Merge};
 
-///The edges for this graph are hashed along with its from-node, allowing for graphs such as those found in deterministic automaton.
+///The edges for this graph are hashed along with its from-node, allowing for wrapper such as those found in deterministic automaton.
 #[derive(Clone, Debug, Eq, PartialEq, Default)]
 pub struct Path<Graph> {
     graph: Graph,
