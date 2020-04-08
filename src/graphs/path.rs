@@ -1,5 +1,4 @@
 use std::ops::{Deref, DerefMut};
-
 use crate::dev::orientation::Edge;
 use crate::dev::{orientation, Builder, Edges, GetEdge, GetEdgeTo, GetVertex, Neighbours, RemoveEdge, RemoveVertex, Vertices, Merge};
 

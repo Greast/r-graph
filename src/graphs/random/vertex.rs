@@ -177,4 +177,3 @@ impl<Graph, VertexKey> Merge for Vertex<Graph, VertexKey>
         }
     }
 }
-
