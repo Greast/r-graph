@@ -8,11 +8,9 @@ pub struct Path<Graph> {
     graph: Graph,
 }
 
-impl<Graph> Path<Graph>{
-    fn new(graph:Graph) -> Self{
-        Self{
-            graph
-        }
+impl<Graph> From<Graph> for Path<Graph>{
+    fn from(graph: Graph) -> Self {
+        Self{graph}
     }
 }
 
@@ -163,10 +161,10 @@ impl<Graph> Merge for Path<Graph>
     fn merge(self, other: Self) -> Result<Self, (Self, Self)> {
         let output = self.graph.merge(other.graph);
         match output {
-            Ok(x) => Ok(Self::new(x)),
+            Ok(x) => Ok(x.into()),
             Err((x, y)) => Err((
-                Self::new(x),
-                Self::new(y),
+                x.into(),
+                y.into(),
             )),
         }
     }
