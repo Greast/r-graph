@@ -1,5 +1,5 @@
-use crate::dev::orientation::Edge as EdgeTrait;
-use crate::dev::{orientation, Builder, Edges, GetEdge, GetEdgeTo, GetVertex, Neighbours, RemoveEdge, RemoveVertex, Vertices, Merge};
+use crate::dev::orientation::AddEdge as EdgeTrait;
+use crate::dev::{orientation, AddVertex, Edges, GetEdge, GetEdgeTo, GetVertex, Neighbours, RemoveEdge, RemoveVertex, Vertices, Merge};
 use rand::distributions::{Distribution, Standard};
 use rand::random;
 use std::marker::PhantomData;
@@ -34,11 +34,11 @@ impl<Graph, EdgeKey> From<Graph> for Edge<Graph, EdgeKey> {
     }
 }
 
-impl<Graph, EdgeKey, Value> Builder<Value> for Edge<Graph, EdgeKey>
+impl<Graph, EdgeKey, Value> AddVertex<Value> for Edge<Graph, EdgeKey>
 where
-    Graph: Builder<Value>,
+    Graph: AddVertex<Value>,
 {
-    type Key = <Graph as Builder<Value>>::Key;
+    type Key = <Graph as AddVertex<Value>>::Key;
 
     fn add_vertex(&mut self, value: Value) -> Result<Self::Key, Value> {
         self.graph.add_vertex(value)

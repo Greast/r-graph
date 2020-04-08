@@ -1,6 +1,6 @@
-use crate::dev::orientation::Edge;
+use crate::dev::orientation::AddEdge;
 use crate::dev::{
-    orientation, Builder, Edges, GetEdge, GetEdgeTo, GetVertex, Merge, Neighbours, RemoveEdge,
+    orientation, AddVertex, Edges, GetEdge, GetEdgeTo, GetVertex, Merge, Neighbours, RemoveEdge,
     RemoveVertex, Vertices,
 };
 use std::ops::{Deref, DerefMut};
@@ -48,24 +48,24 @@ impl<Graph, Orientation> Oriented<Graph, Orientation> {
     }
 }
 
-impl<Graph, Orientation, Value> Builder<Value> for Oriented<Graph, Orientation>
+impl<Graph, Orientation, Value> AddVertex<Value> for Oriented<Graph, Orientation>
 where
-    Graph: Builder<Value>,
+    Graph: AddVertex<Value>,
 {
-    type Key = <Graph as Builder<Value>>::Key;
+    type Key = <Graph as AddVertex<Value>>::Key;
 
     fn add_vertex(&mut self, value: Value) -> Result<Self::Key, Value> {
         self.graph.add_vertex(value)
     }
 }
 
-impl<Graph, VertexKey, Value, Orientation> Edge<Orientation, VertexKey, Value>
+impl<Graph, VertexKey, Value, Orientation> AddEdge<Orientation, VertexKey, Value>
     for Oriented<Graph, Orientation>
 where
     Orientation: orientation::Orientation,
-    Graph: Edge<Orientation, VertexKey, Value>,
+    Graph: AddEdge<Orientation, VertexKey, Value>,
 {
-    type EdgeKey = <Graph as Edge<Orientation, VertexKey, Value>>::EdgeKey;
+    type EdgeKey = <Graph as AddEdge<Orientation, VertexKey, Value>>::EdgeKey;
 
     fn add_edge(
         &mut self,

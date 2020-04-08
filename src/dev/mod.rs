@@ -35,7 +35,7 @@ pub mod orientation {
     pub struct Undirected;
     impl Orientation for Undirected {}
 
-    pub trait Edge<O: Orientation, VertexKey, Edge> {
+    pub trait AddEdge<O: Orientation, VertexKey, Edge> {
         type EdgeKey;
         fn add_edge(
             &mut self,
@@ -46,7 +46,7 @@ pub mod orientation {
     }
 }
 
-pub trait Builder<Input> {
+pub trait AddVertex<Input> {
     type Key;
     fn add_vertex(&mut self, vertex: Input) -> Result<Self::Key, Input>;
 }

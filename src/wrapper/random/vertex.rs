@@ -1,5 +1,5 @@
-use crate::dev::orientation::Edge;
-use crate::dev::{orientation, Builder, Edges, GetEdge, GetEdgeTo, GetVertex, Neighbours, RemoveEdge, RemoveVertex, Vertices, Merge};
+use crate::dev::orientation::AddEdge;
+use crate::dev::{orientation, AddVertex, Edges, GetEdge, GetEdgeTo, GetVertex, Neighbours, RemoveEdge, RemoveVertex, Vertices, Merge};
 use rand::distributions::{Distribution, Standard};
 use rand::random;
 use std::marker::PhantomData;
@@ -34,12 +34,12 @@ impl<Graph, VertexKey> From<Graph> for Vertex<Graph, VertexKey> {
     }
 }
 
-impl<Graph, VertexKey, Value> Builder<Value> for Vertex<Graph, VertexKey>
+impl<Graph, VertexKey, Value> AddVertex<Value> for Vertex<Graph, VertexKey>
 where
-    Graph: Builder<(VertexKey, Value)>,
+    Graph: AddVertex<(VertexKey, Value)>,
     Standard: Distribution<VertexKey>,
 {
-    type Key = <Graph as Builder<(VertexKey, Value)>>::Key;
+    type Key = <Graph as AddVertex<(VertexKey, Value)>>::Key;
 
     fn add_vertex(&mut self, value: Value) -> Result<Self::Key, Value> {
         let mut output = self.graph.add_vertex((random(), value));
@@ -50,13 +50,13 @@ where
     }
 }
 
-impl<Graph, VertexKey, Value, Orientation> Edge<Orientation, VertexKey, Value>
+impl<Graph, VertexKey, Value, Orientation> AddEdge<Orientation, VertexKey, Value>
     for Vertex<Graph, VertexKey>
 where
     Orientation: orientation::Orientation,
-    Graph: Edge<Orientation, VertexKey, Value>,
+    Graph: AddEdge<Orientation, VertexKey, Value>,
 {
-    type EdgeKey = <Graph as Edge<Orientation, VertexKey, Value>>::EdgeKey;
+    type EdgeKey = <Graph as AddEdge<Orientation, VertexKey, Value>>::EdgeKey;
 
     fn add_edge(
         &mut self,

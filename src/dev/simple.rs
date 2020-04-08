@@ -1,8 +1,8 @@
 use crate::dev::node::Node;
-use crate::dev::orientation::{Directed, Edge, Undirected};
+use crate::dev::orientation::{Directed, AddEdge, Undirected};
 use crate::dev::transform::{mapping, Map};
 use crate::dev::{
-    Builder, Edges, GetEdge, GetEdgeTo, GetVertex, Merge, Neighbours, RemoveEdge, RemoveVertex,
+    AddVertex, Edges, GetEdge, GetEdgeTo, GetVertex, Merge, Neighbours, RemoveEdge, RemoveVertex,
     Vertices,
 };
 use std::collections::{HashMap, HashSet};
@@ -19,7 +19,7 @@ where
     pub edges: HashMap<EdgeKey, Node<Edge, VertexKey, VertexKey>>,
 }
 
-impl<VertexKey, Vertex, EdgeKey, Edge> Builder<(VertexKey, Vertex)>
+impl<VertexKey, Vertex, EdgeKey, Edge> AddVertex<(VertexKey, Vertex)>
     for Simple<VertexKey, Vertex, EdgeKey, Edge>
 where
     VertexKey: Eq + Hash + Clone,
@@ -47,7 +47,7 @@ where
     }
 }
 
-impl<Vk, V, Ek, E> Edge<Directed, Vk, (Ek, E)> for Simple<Vk, V, Ek, E>
+impl<Vk, V, Ek, E> AddEdge<Directed, Vk, (Ek, E)> for Simple<Vk, V, Ek, E>
 where
     Vk: Eq + Hash + Clone,
     Ek: Eq + Hash + Clone,
@@ -79,7 +79,7 @@ where
     }
 }
 
-impl<Vk, V, Ek, E> Edge<Undirected, Vk, (Ek, E)> for Simple<Vk, V, Ek, E>
+impl<Vk, V, Ek, E> AddEdge<Undirected, Vk, (Ek, E)> for Simple<Vk, V, Ek, E>
 where
     Vk: Eq + Hash + Clone,
     Ek: Eq + Hash + Clone,
@@ -92,7 +92,7 @@ where
         to: &Vk,
         (key, data): (Ek, E),
     ) -> Result<Self::EdgeKey, (Ek, E)> {
-        let output = Edge::<Directed, Vk, (Ek, E)>::add_edge(self, from, to, (key.clone(), data));
+        let output = AddEdge::<Directed, Vk, (Ek, E)>::add_edge(self, from, to, (key.clone(), data));
         self.vertices.get_mut(&to).unwrap().from.insert(key);
         output
     }

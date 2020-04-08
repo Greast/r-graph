@@ -97,7 +97,7 @@ mod tests {
     use super::*;
     use crate::dev::orientation::Directed;
     use crate::dev::simple::Simple;
-    use crate::dev::Builder;
+    use crate::dev::AddVertex;
     use crate::wrapper::oriented::Oriented;
 
     #[test]

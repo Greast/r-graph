@@ -1,6 +1,6 @@
 use std::ops::{Deref, DerefMut};
-use crate::dev::orientation::Edge;
-use crate::dev::{orientation, Builder, Edges, GetEdge, GetEdgeTo, GetVertex, Neighbours, RemoveEdge, RemoveVertex, Vertices, Merge};
+use crate::dev::orientation::AddEdge;
+use crate::dev::{orientation, AddVertex, Edges, GetEdge, GetEdgeTo, GetVertex, Neighbours, RemoveEdge, RemoveVertex, Vertices, Merge};
 
 ///The edges for this graph are hashed along with its from-node, allowing for wrapper such as those found in deterministic automaton.
 #[derive(Clone, Debug, Eq, PartialEq, Default)]
@@ -28,23 +28,23 @@ impl<Graph> DerefMut for Path<Graph> {
     }
 }
 
-impl<Graph, Input> Builder<Input> for Path<Graph>
+impl<Graph, Input> AddVertex<Input> for Path<Graph>
 where
-    Graph: Builder<Input>,
+    Graph: AddVertex<Input>,
 {
-    type Key = <Graph as Builder<Input>>::Key;
+    type Key = <Graph as AddVertex<Input>>::Key;
 
     fn add_vertex(&mut self, vertex: Input) -> Result<Self::Key, Input> {
         self.graph.add_vertex(vertex)
     }
 }
 
-impl<Orientation, Graph, VertexKey, EdgeKey, Value> Edge<Orientation, VertexKey, (EdgeKey, Value)>
+impl<Orientation, Graph, VertexKey, EdgeKey, Value> AddEdge<Orientation, VertexKey, (EdgeKey, Value)>
     for Path<Graph>
 where
     Orientation: orientation::Orientation,
     Graph:
-        Edge<Orientation, VertexKey, ((VertexKey, EdgeKey), Value), EdgeKey = (VertexKey, EdgeKey)>,
+        AddEdge<Orientation, VertexKey, ((VertexKey, EdgeKey), Value), EdgeKey = (VertexKey, EdgeKey)>,
     VertexKey: Clone,
 {
     type EdgeKey = (VertexKey, EdgeKey);
