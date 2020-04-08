@@ -81,3 +81,10 @@ where
     type Output: IntoIterator<Item = &'a Key>;
     fn edges(&'a self) -> Self::Output;
 }
+
+pub trait Merge
+where
+    Self: Sized,
+{
+    fn merge(self, _: Self) -> Result<Self, (Self, Self)>;
+}

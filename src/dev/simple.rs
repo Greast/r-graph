@@ -2,7 +2,8 @@ use crate::dev::node::Node;
 use crate::dev::orientation::{Directed, Edge, Undirected};
 use crate::dev::transform::{mapping, Map};
 use crate::dev::{
-    Builder, Edges, GetEdge, GetEdgeTo, GetVertex, Neighbours, RemoveEdge, RemoveVertex, Vertices,
+    Builder, Edges, GetEdge, GetEdgeTo, GetVertex, Merge, Neighbours, RemoveEdge, RemoveVertex,
+    Vertices,
 };
 use std::collections::{HashMap, HashSet};
 use std::hash::Hash;
@@ -474,3 +475,33 @@ where
         }
     }
 }
+
+impl<VertexKey, Vertex, EdgeKey, Edge> Merge for Simple<VertexKey, Vertex, EdgeKey, Edge>
+where
+    VertexKey: Eq + Hash,
+    EdgeKey: Eq + Hash,
+{
+    fn merge(mut self, other: Self) -> Result<Self, (Self, Self)> {
+        let conflict = self
+            .vertices
+            .iter()
+            .any(|(key, _)| other.vertices.contains_key(key))
+            || self
+                .edges
+                .iter()
+                .any(|(key, _)| other.edges.contains_key(key));
+
+        if conflict {
+            Err((self, other))
+        } else {
+            for (key, node) in other.vertices.into_iter() {
+                self.vertices.insert(key, node);
+            }
+            for (key, node) in other.edges.into_iter() {
+                self.edges.insert(key, node);
+            }
+            Ok(self)
+        }
+    }
+}
+
