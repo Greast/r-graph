@@ -1,5 +1,5 @@
 use crate::dev::node::Node;
-use crate::dev::orientation::{Directed, AddEdge, Undirected};
+use crate::dev::orientation::{AddEdge, Directed, Undirected};
 use crate::dev::transform::{mapping, Map};
 use crate::dev::{
     AddVertex, Edges, GetEdge, GetEdgeTo, GetVertex, Merge, Neighbours, RemoveEdge, RemoveVertex,
@@ -92,7 +92,8 @@ where
         to: &Vk,
         (key, data): (Ek, E),
     ) -> Result<Self::EdgeKey, (Ek, E)> {
-        let output = AddEdge::<Directed, Vk, (Ek, E)>::add_edge(self, from, to, (key.clone(), data));
+        let output =
+            AddEdge::<Directed, Vk, (Ek, E)>::add_edge(self, from, to, (key.clone(), data));
         self.vertices.get_mut(&to).unwrap().from.insert(key);
         output
     }
@@ -504,4 +505,3 @@ where
         }
     }
 }
-

@@ -1,23 +1,26 @@
 use crate::dev::{orientation, GetEdge, Neighbours};
 use crate::extended::header::Header;
+use crate::extended::path::Path;
 use std::cmp::Reverse;
 use std::collections::{BinaryHeap, HashMap};
 use std::hash::Hash;
+use std::marker::PhantomData;
 use std::ops::Add;
 
 ///Dynamic programming version of dijkstras algorithm. Allows for efficient search of multiple end points.
-struct Dijkstra<'a, Graph, Key, Edge, Weight> {
+struct Dijkstra<'a, Graph, Key, Edge, Weight, Orientation> {
     from: &'a Key,
     graph: &'a Graph,
     visited: HashMap<&'a Key, (Weight, &'a Key, &'a Edge)>,
     queue: BinaryHeap<Reverse<Header<Weight, &'a Key>>>,
+    orientation: PhantomData<Orientation>,
 }
 
-impl<'a, Graph, Key, Edge, Weight> Dijkstra<'a, Graph, Key, Edge, Weight>
+impl<'a, Graph, Key, Edge, Weight, Orientation> Dijkstra<'a, Graph, Key, Edge, Weight, Orientation>
 where
     Key: Eq + Hash,
 {
-    pub fn new<Orientation>(graph: &'a Graph, from: &'a Key) -> Self
+    pub fn new(graph: &'a Graph, from: &'a Key) -> Self
     where
         Weight: Ord + Clone,
         Orientation: orientation::Orientation,
@@ -38,6 +41,7 @@ where
             graph,
             visited,
             queue,
+            orientation: Default::default(),
         }
     }
 
@@ -55,7 +59,7 @@ where
         }
     }
 
-    fn cache_path<Orientation>(&mut self, to: &Key)
+    fn cache_path(&mut self, to: &Key)
     where
         Orientation: orientation::Orientation,
         Weight: Ord + Clone + Add,
@@ -78,7 +82,7 @@ where
         }
     }
 
-    pub fn to<Orientation>(&mut self, to: &'a Key) -> Option<Vec<&(Weight, &Key, &Edge)>>
+    pub fn to(&mut self, to: &'a Key) -> Option<Vec<&(Weight, &Key, &Edge)>>
     where
         Orientation: orientation::Orientation,
         Weight: Ord + Clone + Add,
@@ -90,5 +94,27 @@ where
             self.cache_path(to);
         }
         self.path(to)
+    }
+}
+
+impl<'a, Vertex, Edge, Graph, Weight, Orientation> Path<'a, Vertex, Edge>
+    for Dijkstra<'a, Graph, Vertex, Edge, Weight, Orientation>
+where
+    Orientation: orientation::Orientation,
+    Graph:
+        Neighbours<'a, Orientation, Vertex, Edge = &'a Edge> + GetEdge<'a, Edge, Output = Weight>,
+    &'a Vertex: Eq + Hash,
+    Vertex: Eq + Hash,
+    Weight: Ord + Clone + Add,
+    <Weight as Add>::Output: Into<Weight>,
+{
+    type IntoIter = Vec<(&'a Vertex, &'a Edge)>;
+
+    fn to(&'a mut self, to: &'a Vertex) -> Option<Self::IntoIter> {
+        if !self.visited.contains_key(to) {
+            self.cache_path(to);
+        }
+        self.path(to)
+            .map(|vec| vec.into_iter().map(|(_, v, e)| (*v, *e)).collect())
     }
 }

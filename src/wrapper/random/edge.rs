@@ -1,5 +1,8 @@
 use crate::dev::orientation::AddEdge as EdgeTrait;
-use crate::dev::{orientation, AddVertex, Edges, GetEdge, GetEdgeTo, GetVertex, Neighbours, RemoveEdge, RemoveVertex, Vertices, Merge};
+use crate::dev::{
+    orientation, AddVertex, Edges, GetEdge, GetEdgeTo, GetVertex, Merge, Neighbours, RemoveEdge,
+    RemoveVertex, Vertices,
+};
 use rand::distributions::{Distribution, Standard};
 use rand::random;
 use std::marker::PhantomData;
@@ -163,17 +166,14 @@ where
 }
 
 impl<Graph, EdgeKey> Merge for Edge<Graph, EdgeKey>
-    where
-        Graph: Merge,
+where
+    Graph: Merge,
 {
     fn merge(self, other: Self) -> Result<Self, (Self, Self)> {
         let output = self.graph.merge(other.graph);
         match output {
             Ok(x) => Ok(x.into()),
-            Err((x, y)) => Err((
-                x.into(),
-                y.into(),
-            )),
+            Err((x, y)) => Err((x.into(), y.into())),
         }
     }
 }
