@@ -1,3 +1,2 @@
-pub mod breadth;
-pub mod dijkstra;
 pub mod header;
+pub mod path;

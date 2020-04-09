@@ -1,6 +1,9 @@
-use std::ops::{Deref, DerefMut};
 use crate::dev::orientation::AddEdge;
-use crate::dev::{orientation, AddVertex, Edges, GetEdge, GetEdgeTo, GetVertex, Neighbours, RemoveEdge, RemoveVertex, Vertices, Merge};
+use crate::dev::{
+    orientation, AddVertex, Edges, GetEdge, GetEdgeTo, GetVertex, Merge, Neighbours, RemoveEdge,
+    RemoveVertex, Vertices,
+};
+use std::ops::{Deref, DerefMut};
 
 ///The edges for this graph are hashed along with its from-node, allowing for wrapper such as those found in deterministic automaton.
 #[derive(Clone, Debug, Eq, PartialEq, Default)]
@@ -8,9 +11,9 @@ pub struct Path<Graph> {
     graph: Graph,
 }
 
-impl<Graph> From<Graph> for Path<Graph>{
+impl<Graph> From<Graph> for Path<Graph> {
     fn from(graph: Graph) -> Self {
-        Self{graph}
+        Self { graph }
     }
 }
 
@@ -39,12 +42,16 @@ where
     }
 }
 
-impl<Orientation, Graph, VertexKey, EdgeKey, Value> AddEdge<Orientation, VertexKey, (EdgeKey, Value)>
-    for Path<Graph>
+impl<Orientation, Graph, VertexKey, EdgeKey, Value>
+    AddEdge<Orientation, VertexKey, (EdgeKey, Value)> for Path<Graph>
 where
     Orientation: orientation::Orientation,
-    Graph:
-        AddEdge<Orientation, VertexKey, ((VertexKey, EdgeKey), Value), EdgeKey = (VertexKey, EdgeKey)>,
+    Graph: AddEdge<
+        Orientation,
+        VertexKey,
+        ((VertexKey, EdgeKey), Value),
+        EdgeKey = (VertexKey, EdgeKey),
+    >,
     VertexKey: Clone,
 {
     type EdgeKey = (VertexKey, EdgeKey);
@@ -155,17 +162,14 @@ where
 }
 
 impl<Graph> Merge for Path<Graph>
-    where
-        Graph: Merge,
+where
+    Graph: Merge,
 {
     fn merge(self, other: Self) -> Result<Self, (Self, Self)> {
         let output = self.graph.merge(other.graph);
         match output {
             Ok(x) => Ok(x.into()),
-            Err((x, y)) => Err((
-                x.into(),
-                y.into(),
-            )),
+            Err((x, y)) => Err((x.into(), y.into())),
         }
     }
 }
