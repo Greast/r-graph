@@ -244,25 +244,27 @@ impl<'a, VertexKey, Vertex, EdgeKey, Edge> Vertices<'a, VertexKey>
     for Simple<VertexKey, Vertex, EdgeKey, Edge>
 where
     VertexKey: Eq + Hash + 'a,
-    EdgeKey: Eq + Hash,
+    Vertex : 'a,
+    EdgeKey: 'a + Eq + Hash,
 {
-    type Output = HashSet<&'a VertexKey>;
+    type Output = Keys<'a, VertexKey, Node<Vertex, HashSet<EdgeKey>, HashSet<EdgeKey>>>;
 
     fn vertices(&'a self) -> Self::Output {
-        self.vertices.keys().collect()
+        self.vertices.keys()
     }
 }
 
 impl<'a, VertexKey, Vertex, EdgeKey, Edge> Edges<'a, EdgeKey>
     for Simple<VertexKey, Vertex, EdgeKey, Edge>
 where
-    VertexKey: Eq + Hash,
+    VertexKey: Eq + Hash + 'a,
     EdgeKey: Eq + Hash + 'a,
+    Edge : 'a,
 {
-    type Output = HashSet<&'a EdgeKey>;
+    type Output = Keys<'a, EdgeKey, Node<Edge, VertexKey, VertexKey>>;
 
     fn edges(&'a self) -> Self::Output {
-        self.edges.keys().collect()
+        self.edges.keys()
     }
 }
 
@@ -300,6 +302,7 @@ where
     }
 }
 use super::transform::Mapper as MapperTrait;
+use std::collections::hash_map::Keys;
 
 impl<VertexKey, Vertex, EdgeKey, Edge, VertexIntoIter, EdgeIntoIter, VertexKey2, Func>
     MapperTrait<mapping::VertexKey, VertexKey, VertexKey2, Func>
