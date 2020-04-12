@@ -58,9 +58,8 @@ where
 
     fn cache_path(&mut self, to: &Vertex)
     where
-        Vertex : Debug,
         Orientation: orientation::Orientation,
-        Weight : Ord + Clone + AddAssign + Debug,
+        Weight : Ord + Clone + AddAssign,
         Graph : Neighbours<'a, Orientation, Vertex, Edge = &'a Edge>
 
     {
@@ -90,9 +89,9 @@ where
 impl<'a, Vertex, Edge, Graph, Weight, Orientation> Path<'a, Vertex, Edge>
     for Dijkstra<'a, Graph, Vertex, Edge, Weight, Orientation>
     where
-        Vertex : Eq + Hash + Debug,
+        Vertex : Eq + Hash,
         Orientation: orientation::Orientation,
-        Weight : Ord  + Clone + AddAssign + Debug,
+        Weight : Ord  + Clone + AddAssign,
         Graph : Neighbours<'a, Orientation, Vertex, Edge = &'a Edge>
 {
     type IntoIter = Vec<(&'a Vertex, &'a Edge)>;
