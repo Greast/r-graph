@@ -1,4 +1,4 @@
-use crate::dev::{Vertices, Neighbours, orientation};
+use crate::dev::{Vertices, Neighbours};
 use std::collections::{HashSet, VecDeque};
 use std::hash::Hash;
 use crate::dev::orientation::{Directed, Undirected};
