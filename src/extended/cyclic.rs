@@ -1,9 +1,10 @@
 use crate::dev::{Vertices, Neighbours, orientation};
 use std::collections::{HashSet, VecDeque};
 use std::hash::Hash;
+use crate::dev::orientation::Directed;
 
-trait Cyclic<'a, Orientation, Vertex>{
-    fn cyclic(&'a self) -> bool;
+trait Cycle<'a, Orientation, Vertex>{
+    fn cycle(&'a self) -> bool;
 }
 
 fn take_random<V>(hash_set:&mut HashSet<V>) -> Option<V>
@@ -15,13 +16,12 @@ fn take_random<V>(hash_set:&mut HashSet<V>) -> Option<V>
 
 }
 
-impl<'a, Orientation, Vertex, Graph> Cyclic<'a, Orientation, Vertex> for Graph
+impl<'a, Vertex, Graph> Cycle<'a, Directed, Vertex> for Graph
     where
-        Orientation : orientation::Orientation,
         Vertex : 'a + Eq + Hash,
-        Self : Vertices<'a, Vertex> + Neighbours<'a, Orientation, Vertex>{
+        Self : Vertices<'a, Vertex> + Neighbours<'a, Directed, Vertex>{
 
-    fn cyclic(&'a self) -> bool {
+    fn cycle(&'a self) -> bool {
         let mut queue = VecDeque::new();
         let mut vertices : HashSet<_> = self.vertices().into_iter().collect();
         while let Some(cluster) = take_random(&mut vertices){
@@ -36,5 +36,23 @@ impl<'a, Orientation, Vertex, Graph> Cyclic<'a, Orientation, Vertex> for Graph
             }
         }
         false
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::dev::simple::Simple;
+    use crate::wrapper::oriented::Orient;
+    use crate::dev::AddVertex;
+    use crate::dev::orientation::AddEdge;
+
+    #[test]
+    fn simple_cycle() {
+        let mut graph = Simple::default().orient(Directed);
+        let a = graph.add_vertex((0,())).unwrap();
+        graph.add_edge(&a,&a, (0,())).unwrap();
+
+        assert!(graph.cycle())
     }
 }
