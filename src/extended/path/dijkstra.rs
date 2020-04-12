@@ -5,8 +5,8 @@ use std::cmp::Reverse;
 use std::collections::{BinaryHeap, HashMap};
 use std::hash::Hash;
 use std::marker::PhantomData;
-use std::ops::{Add, AddAssign};
-use std::fmt::Debug;
+use std::ops::{AddAssign};
+
 
 ///Dynamic programming version of dijkstras algorithm. Allows for efficient search of multiple end points.
 struct Dijkstra<'a, Graph, Vertex, Edge, Weight, Orientation> {
