@@ -1,5 +1,5 @@
 use crate::dev::node::Node;
-use crate::dev::orientation::{Directed, AddEdge, Undirected};
+use crate::dev::orientation::{AddEdge, Directed, Undirected};
 use crate::dev::transform::{mapping, Map};
 use crate::dev::{
     AddVertex, Edges, GetEdge, GetEdgeTo, GetVertex, Merge, Neighbours, RemoveEdge, RemoveVertex,
@@ -92,7 +92,8 @@ where
         to: &Vk,
         (key, data): (Ek, E),
     ) -> Result<Self::EdgeKey, (Ek, E)> {
-        let output = AddEdge::<Directed, Vk, (Ek, E)>::add_edge(self, from, to, (key.clone(), data));
+        let output =
+            AddEdge::<Directed, Vk, (Ek, E)>::add_edge(self, from, to, (key.clone(), data));
         self.vertices.get_mut(&to).unwrap().from.insert(key);
         output
     }
@@ -233,7 +234,7 @@ where
             .get(vertex)?
             .from
             .iter()
-            .flat_map(|key| Some((key, &self.edges.get(key)?.to)));
+            .flat_map(|key| Some((key, &self.edges.get(key)?.from)));
 
         to.chain(from).collect::<Vec<_>>().into()
     }
@@ -243,25 +244,27 @@ impl<'a, VertexKey, Vertex, EdgeKey, Edge> Vertices<'a, VertexKey>
     for Simple<VertexKey, Vertex, EdgeKey, Edge>
 where
     VertexKey: Eq + Hash + 'a,
-    EdgeKey: Eq + Hash,
+    Vertex : 'a,
+    EdgeKey: 'a + Eq + Hash,
 {
-    type Output = HashSet<&'a VertexKey>;
+    type Output = Keys<'a, VertexKey, Node<Vertex, HashSet<EdgeKey>, HashSet<EdgeKey>>>;
 
     fn vertices(&'a self) -> Self::Output {
-        self.vertices.keys().collect()
+        self.vertices.keys()
     }
 }
 
 impl<'a, VertexKey, Vertex, EdgeKey, Edge> Edges<'a, EdgeKey>
     for Simple<VertexKey, Vertex, EdgeKey, Edge>
 where
-    VertexKey: Eq + Hash,
+    VertexKey: Eq + Hash + 'a,
     EdgeKey: Eq + Hash + 'a,
+    Edge : 'a,
 {
-    type Output = HashSet<&'a EdgeKey>;
+    type Output = Keys<'a, EdgeKey, Node<Edge, VertexKey, VertexKey>>;
 
     fn edges(&'a self) -> Self::Output {
-        self.edges.keys().collect()
+        self.edges.keys()
     }
 }
 
@@ -299,6 +302,7 @@ where
     }
 }
 use super::transform::Mapper as MapperTrait;
+use std::collections::hash_map::Keys;
 
 impl<VertexKey, Vertex, EdgeKey, Edge, VertexIntoIter, EdgeIntoIter, VertexKey2, Func>
     MapperTrait<mapping::VertexKey, VertexKey, VertexKey2, Func>
@@ -504,4 +508,3 @@ where
         }
     }
 }
-
