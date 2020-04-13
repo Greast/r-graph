@@ -234,7 +234,7 @@ where
             .get(vertex)?
             .from
             .iter()
-            .flat_map(|key| Some((key, &self.edges.get(key)?.to)));
+            .flat_map(|key| Some((key, &self.edges.get(key)?.from)));
 
         to.chain(from).collect::<Vec<_>>().into()
     }
