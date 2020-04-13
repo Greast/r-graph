@@ -57,6 +57,7 @@ impl<'a, Vertex, Graph> Cycle<'a, Undirected, Vertex> for Graph
 
             while let Some((mut from, vertex)) = queue.pop_front(){
                 for (edge, vert) in self.neighbours(vertex).into_iter().flatten(){
+
                     if from.as_ref().map(|x| x == &edge).is_some(){
                         from.take();
                         continue;
@@ -104,7 +105,6 @@ mod tests {
         let b = graph.add_vertex((1,())).unwrap();
 
         graph.add_edge(&a,&b, (0,())).unwrap();
-
         assert!(!graph.cycle())
     }
 

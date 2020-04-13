@@ -27,11 +27,11 @@ where
 pub mod orientation {
     pub trait Orientation {}
 
-    #[derive(Default)]
+    #[derive(Default, Debug, Eq, PartialEq)]
     pub struct Directed;
     impl Orientation for Directed {}
 
-    #[derive(Default)]
+    #[derive(Default, Debug, Eq, PartialEq)]
     pub struct Undirected;
     impl Orientation for Undirected {}
 
