@@ -1,6 +1,6 @@
 [package]
 name = "r-graph"
-version = "0.0.13"
+version = "0.0.14"
 
 authors = ["Greast <jonas.jonas.srensen11@gmail.com>"]
 edition = "2018"
