@@ -1,10 +1,12 @@
 use crate::dev::node::Node;
 use crate::dev::orientation::{AddEdge, Directed, Undirected};
-use crate::dev::transform::{mapping, Map};
+
+use crate::dev::transform::Transform;
 use crate::dev::{
     AddVertex, Edges, GetEdge, GetEdgeTo, GetVertex, Merge, Neighbours, RemoveEdge, RemoveVertex,
     Vertices,
 };
+use std::collections::hash_map::Keys;
 use std::collections::{HashMap, HashSet};
 use std::hash::Hash;
 
@@ -244,7 +246,7 @@ impl<'a, VertexKey, Vertex, EdgeKey, Edge> Vertices<'a, VertexKey>
     for Simple<VertexKey, Vertex, EdgeKey, Edge>
 where
     VertexKey: Eq + Hash + 'a,
-    Vertex : 'a,
+    Vertex: 'a,
     EdgeKey: 'a + Eq + Hash,
 {
     type Output = Keys<'a, VertexKey, Node<Vertex, HashSet<EdgeKey>, HashSet<EdgeKey>>>;
@@ -259,7 +261,7 @@ impl<'a, VertexKey, Vertex, EdgeKey, Edge> Edges<'a, EdgeKey>
 where
     VertexKey: Eq + Hash + 'a,
     EdgeKey: Eq + Hash + 'a,
-    Edge : 'a,
+    Edge: 'a,
 {
     type Output = Keys<'a, EdgeKey, Node<Edge, VertexKey, VertexKey>>;
 
@@ -268,243 +270,52 @@ where
     }
 }
 
-pub struct Mapper<VertexKey, Vertex, EdgeKey, Edge, VertexIntoIter, EdgeIntoIter>
+impl<VK, V, EK, E, VKmap, Vmap, EKmap, Emap, VK2, V2, EK2, E2>
+    Transform<VKmap, Vmap, EKmap, Emap, Simple<VK, V, EK, E>>
+    for Simple<VK2, V2, EK2, E2>
 where
-    VertexIntoIter:
-        IntoIterator<Item = (VertexKey, Node<Vertex, HashSet<EdgeKey>, HashSet<EdgeKey>>)>,
-    EdgeIntoIter: IntoIterator<Item = (EdgeKey, Node<Edge, VertexKey, VertexKey>)>,
+    VK2: Eq + Hash,
+    EK2: Eq + Hash,
+    VK: Eq + Hash,
+    EK: Eq + Hash,
+    VKmap: Fn(VK) -> VK2 + Clone,
+    Vmap: Fn(V) -> V2,
+    EKmap: Fn(EK) -> EK2 + Clone,
+    Emap: Fn(E) -> E2,
 {
-    pub vertices: VertexIntoIter,
-    pub edges: EdgeIntoIter,
-}
-
-impl<VertexKey, Vertex, EdgeKey, Edge> Map for Simple<VertexKey, Vertex, EdgeKey, Edge>
-where
-    VertexKey: 'static + Eq + Hash,
-    EdgeKey: 'static + Eq + Hash,
-    Vertex: 'static,
-    Edge: 'static,
-{
-    type Mapper = Mapper<
-        VertexKey,
-        Vertex,
-        EdgeKey,
-        Edge,
-        Box<dyn Iterator<Item = (VertexKey, Node<Vertex, HashSet<EdgeKey>, HashSet<EdgeKey>>)>>,
-        Box<dyn Iterator<Item = (EdgeKey, Node<Edge, VertexKey, VertexKey>)>>,
-    >;
-
-    fn map(self) -> Self::Mapper {
-        Mapper {
-            vertices: Box::new(self.vertices.into_iter()),
-            edges: Box::new(self.edges.into_iter()),
-        }
-    }
-}
-use super::transform::Mapper as MapperTrait;
-use std::collections::hash_map::Keys;
-
-impl<VertexKey, Vertex, EdgeKey, Edge, VertexIntoIter, EdgeIntoIter, VertexKey2, Func>
-    MapperTrait<mapping::VertexKey, VertexKey, VertexKey2, Func>
-    for Mapper<VertexKey, Vertex, EdgeKey, Edge, VertexIntoIter, EdgeIntoIter>
-where
-    VertexIntoIter:
-        IntoIterator<Item = (VertexKey, Node<Vertex, HashSet<EdgeKey>, HashSet<EdgeKey>>)>,
-    EdgeIntoIter: IntoIterator<Item = (EdgeKey, Node<Edge, VertexKey, VertexKey>)>,
-    <VertexIntoIter as std::iter::IntoIterator>::IntoIter: 'static,
-    <EdgeIntoIter as std::iter::IntoIterator>::IntoIter: 'static,
-    Func: 'static + Copy,
-{
-    type Output = Mapper<
-        VertexKey2,
-        Vertex,
-        EdgeKey,
-        Edge,
-        Box<dyn Iterator<Item = (VertexKey2, Node<Vertex, HashSet<EdgeKey>, HashSet<EdgeKey>>)>>,
-        Box<dyn Iterator<Item = (EdgeKey, Node<Edge, VertexKey2, VertexKey2>)>>,
-    >;
-
-    fn map(self, function: Func) -> Self::Output
-    where
-        Func: Fn(VertexKey) -> VertexKey2,
-    {
-        let vertices = Box::new(
-            self.vertices
-                .into_iter()
-                .map(move |(key, node)| (function(key), node)),
-        );
-        let edges = Box::new(self.edges.into_iter().map(move |(key, node)| {
-            (
-                key,
-                Node {
-                    data: node.data,
-                    from: function(node.from),
-                    to: function(node.to),
-                },
-            )
-        }));
-        Mapper { vertices, edges }
-    }
-}
-
-impl<VertexKey, Vertex, EdgeKey, Edge, VertexIntoIter, EdgeIntoIter, Vertex2, Func>
-    MapperTrait<mapping::Vertex, Vertex, Vertex2, Func>
-    for Mapper<VertexKey, Vertex, EdgeKey, Edge, VertexIntoIter, EdgeIntoIter>
-where
-    VertexIntoIter:
-        IntoIterator<Item = (VertexKey, Node<Vertex, HashSet<EdgeKey>, HashSet<EdgeKey>>)>,
-    EdgeIntoIter: IntoIterator<Item = (EdgeKey, Node<Edge, VertexKey, VertexKey>)>,
-    <VertexIntoIter as std::iter::IntoIterator>::IntoIter: 'static,
-    <EdgeIntoIter as std::iter::IntoIterator>::IntoIter: 'static,
-    Func: 'static + Copy,
-{
-    type Output = Mapper<
-        VertexKey,
-        Vertex2,
-        EdgeKey,
-        Edge,
-        Box<dyn Iterator<Item = (VertexKey, Node<Vertex2, HashSet<EdgeKey>, HashSet<EdgeKey>>)>>,
-        Box<dyn Iterator<Item = (EdgeKey, Node<Edge, VertexKey, VertexKey>)>>,
-    >;
-
-    fn map(self, function: Func) -> Self::Output
-    where
-        Func: Fn(Vertex) -> Vertex2,
-    {
-        let vertices = Box::new(self.vertices.into_iter().map(move |(key, node)| {
-            (
-                key,
-                Node {
-                    data: function(node.data),
-                    from: node.from,
-                    to: node.to,
-                },
-            )
-        }));
-        Mapper {
-            vertices,
-            edges: Box::new(self.edges.into_iter()),
-        }
-    }
-}
-
-impl<VertexKey, Vertex, EdgeKey, Edge, VertexIntoIter, EdgeIntoIter, EdgeKey2, Func>
-    MapperTrait<mapping::EdgeKey, EdgeKey, EdgeKey2, Func>
-    for Mapper<VertexKey, Vertex, EdgeKey, Edge, VertexIntoIter, EdgeIntoIter>
-where
-    VertexIntoIter:
-        IntoIterator<Item = (VertexKey, Node<Vertex, HashSet<EdgeKey>, HashSet<EdgeKey>>)>,
-    EdgeIntoIter: IntoIterator<Item = (EdgeKey, Node<Edge, VertexKey, VertexKey>)>,
-    <VertexIntoIter as std::iter::IntoIterator>::IntoIter: 'static,
-    <EdgeIntoIter as std::iter::IntoIterator>::IntoIter: 'static,
-    Func: 'static + Copy,
-    EdgeKey2: Eq + Hash,
-{
-    type Output = Mapper<
-        VertexKey,
-        Vertex,
-        EdgeKey2,
-        Edge,
-        Box<
-            dyn Iterator<
-                Item = (
-                    VertexKey,
-                    Node<Vertex, HashSet<EdgeKey2>, HashSet<EdgeKey2>>,
-                ),
-            >,
-        >,
-        Box<dyn Iterator<Item = (EdgeKey2, Node<Edge, VertexKey, VertexKey>)>>,
-    >;
-
-    fn map(self, function: Func) -> Self::Output
-    where
-        Func: Fn(EdgeKey) -> EdgeKey2,
-    {
-        let vertices = Box::new(self.vertices.into_iter().map(move |(key, node)| {
-            (
-                key,
-                Node {
-                    data: node.data,
-                    from: node.from.into_iter().map(function).collect(),
-                    to: node.to.into_iter().map(function).collect(),
-                },
-            )
-        }));
-        let edges = Box::new(
-            self.edges
-                .into_iter()
-                .map(move |(key, node)| (function(key), node)),
-        );
-        Mapper { vertices, edges }
-    }
-}
-
-impl<VertexKey, Vertex, EdgeKey, Edge, VertexIntoIter, EdgeIntoIter, Edge2, Func>
-    MapperTrait<mapping::Edge, Edge, Edge2, Func>
-    for Mapper<VertexKey, Vertex, EdgeKey, Edge, VertexIntoIter, EdgeIntoIter>
-where
-    VertexIntoIter:
-        IntoIterator<Item = (VertexKey, Node<Vertex, HashSet<EdgeKey>, HashSet<EdgeKey>>)>,
-    EdgeIntoIter: IntoIterator<Item = (EdgeKey, Node<Edge, VertexKey, VertexKey>)>,
-    <VertexIntoIter as std::iter::IntoIterator>::IntoIter: 'static,
-    <EdgeIntoIter as std::iter::IntoIterator>::IntoIter: 'static,
-    Func: 'static + Copy,
-{
-    type Output = Mapper<
-        VertexKey,
-        Vertex,
-        EdgeKey,
-        Edge2,
-        Box<dyn Iterator<Item = (VertexKey, Node<Vertex, HashSet<EdgeKey>, HashSet<EdgeKey>>)>>,
-        Box<dyn Iterator<Item = (EdgeKey, Node<Edge2, VertexKey, VertexKey>)>>,
-    >;
-
-    fn map(self, function: Func) -> Self::Output
-    where
-        Func: Fn(Edge) -> Edge2,
-    {
-        let edges = Box::new(self.edges.into_iter().map(move |(key, node)| {
-            (
-                key,
-                Node {
-                    data: function(node.data),
-                    from: node.from,
-                    to: node.to,
-                },
-            )
-        }));
-        Mapper {
-            vertices: Box::new(self.vertices.into_iter()),
-            edges,
-        }
-    }
-}
-
-impl<VertexKey, Vertex, EdgeKey, Edge> Merge for Simple<VertexKey, Vertex, EdgeKey, Edge>
-where
-    VertexKey: Eq + Hash,
-    EdgeKey: Eq + Hash,
-{
-    fn merge(mut self, other: Self) -> Result<Self, (Self, Self)> {
-        let conflict = self
+    fn collect(
+        graph: Simple<VK, V, EK, E>,
+        (vk_map, v_map, ek_map, e_map): (VKmap, Vmap, EKmap, Emap),
+    ) -> Self {
+        let vertices = graph
             .vertices
-            .iter()
-            .any(|(key, _)| other.vertices.contains_key(key))
-            || self
-                .edges
-                .iter()
-                .any(|(key, _)| other.edges.contains_key(key));
+            .into_iter()
+            .map(|(key, node)| {
+                (
+                    vk_map.clone()(key),
+                    Node {
+                        data: v_map(node.data),
+                        from: node.from.into_iter().map(ek_map.clone()).collect(),
+                        to: node.to.into_iter().map(ek_map.clone()).collect(),
+                    },
+                )
+            })
+            .collect();
 
-        if conflict {
-            Err((self, other))
-        } else {
-            for (key, node) in other.vertices.into_iter() {
-                self.vertices.insert(key, node);
-            }
-            for (key, node) in other.edges.into_iter() {
-                self.edges.insert(key, node);
-            }
-            Ok(self)
-        }
+        let edges = graph
+            .edges
+            .into_iter()
+            .map(|(key, node)| {
+                (
+                    ek_map(key),
+                    Node {
+                        data: e_map(node.data),
+                        from: vk_map.clone()(node.from),
+                        to: vk_map(node.to),
+                    },
+                )
+            })
+            .collect();
+        Self { vertices, edges }
     }
 }
