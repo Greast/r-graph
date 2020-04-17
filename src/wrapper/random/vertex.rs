@@ -7,6 +7,7 @@ use rand::distributions::{Distribution, Standard};
 use rand::random;
 use std::marker::PhantomData;
 use std::ops::{Deref, DerefMut};
+use crate::dev::transform::Transform;
 
 #[derive(Clone, Debug, Eq, PartialEq, Default)]
 pub struct Vertex<Graph, VertexKey = usize> {
@@ -175,5 +176,15 @@ where
             Ok(x) => Ok(x.into()),
             Err((x, y)) => Err((x.into(), y.into())),
         }
+    }
+}
+
+impl< VKmap, Vmap, EKmap, Emap, Graph, VertexKey, Graph2, VertexKey2>
+Transform<VKmap, Vmap, EKmap, Emap, Vertex<Graph, VertexKey>>
+for Vertex<Graph2, VertexKey2>
+    where
+        Graph2 : Transform<VKmap, Vmap, EKmap, Emap, Graph> {
+    fn collect(graph: Vertex<Graph, VertexKey>, maps: (VKmap, Vmap, EKmap, Emap)) -> Self {
+        Graph2::collect(graph.graph, maps).into()
     }
 }
