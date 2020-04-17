@@ -4,6 +4,7 @@ use crate::dev::{
     RemoveVertex, Vertices,
 };
 use std::ops::{Deref, DerefMut};
+use crate::dev::transform::Transform;
 
 ///The edges for this graph are hashed along with its from-node, allowing for wrapper such as those found in deterministic automaton.
 #[derive(Clone, Debug, Eq, PartialEq, Default)]
@@ -170,6 +171,19 @@ where
         match output {
             Ok(x) => Ok(x.into()),
             Err((x, y)) => Err((x.into(), y.into())),
+        }
+    }
+}
+
+impl<VKmap, Vmap, EKmap, Emap, Graph, Graph2>
+Transform<VKmap, Vmap, EKmap, Emap, Path<Graph>>
+for Path<Graph2>
+    where
+        Graph2 : Transform<VKmap, Vmap, EKmap, Emap, Graph>{
+    fn collect(graph: Path<Graph>, function: (VKmap, Vmap, EKmap, Emap)) -> Self {
+        let graph = Graph2::collect(graph.graph, function);
+        Self{
+            graph
         }
     }
 }
