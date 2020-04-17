@@ -146,7 +146,7 @@ where
 }
 
 
-impl<'a, VKmap, Vmap, EKmap, Emap, VK, V, EK, E, Graph>
+impl<VKmap, Vmap, EKmap, Emap, VK, V, EK, E, Graph>
     Transformer<VKmap, Vmap, EKmap, Emap, VK, V, EK, E, Graph>
 {
     pub fn collect<Graph2>(self) -> Graph2

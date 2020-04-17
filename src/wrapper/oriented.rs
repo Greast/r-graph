@@ -4,6 +4,7 @@ use crate::dev::{
     RemoveVertex, Vertices,
 };
 use std::ops::{Deref, DerefMut};
+use crate::dev::transform::Transform;
 
 pub trait Orient<Orientation>
 where
@@ -184,5 +185,15 @@ where
                 Self::new(y, other.orientation),
             )),
         }
+    }
+}
+
+impl<VKmap, Vmap, EKmap, Emap, Graph, Orientation, Graph2>
+Transform<VKmap, Vmap, EKmap, Emap, Oriented<Graph, Orientation>>
+for Oriented<Graph2, Orientation>
+    where
+        Graph2 : Transform<VKmap, Vmap, EKmap, Emap, Graph>{
+    fn collect(graph: Oriented<Graph, Orientation>, function: (VKmap, Vmap, EKmap, Emap)) -> Self {
+        Graph2::collect(graph.graph, function).orient(graph.orientation)
     }
 }
