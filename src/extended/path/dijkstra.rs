@@ -5,8 +5,7 @@ use std::cmp::Reverse;
 use std::collections::{BinaryHeap, HashMap};
 use std::hash::Hash;
 use std::marker::PhantomData;
-use std::ops::{AddAssign};
-
+use std::ops::AddAssign;
 
 ///Dynamic programming version of dijkstras algorithm. Allows for efficient search of multiple end points.
 struct Dijkstra<'a, Graph, Vertex, Edge, Weight, Orientation> {
@@ -17,7 +16,8 @@ struct Dijkstra<'a, Graph, Vertex, Edge, Weight, Orientation> {
     orientation: PhantomData<Orientation>,
 }
 
-impl<'a, Graph, Vertex, Edge, Weight, Orientation> Dijkstra<'a, Graph, Vertex, Edge, Weight, Orientation>
+impl<'a, Graph, Vertex, Edge, Weight, Orientation>
+    Dijkstra<'a, Graph, Vertex, Edge, Weight, Orientation>
 where
     Vertex: Eq + Hash,
 {
@@ -25,8 +25,8 @@ where
     where
         Weight: 'a + Ord + Clone + Default,
         Orientation: orientation::Orientation,
-        Graph:
-            Neighbours<'a, Orientation, Vertex, Edge = &'a Edge> + GetEdge<'a, Edge, Output = &'a Weight>,
+        Graph: Neighbours<'a, Orientation, Vertex, Edge = &'a Edge>
+            + GetEdge<'a, Edge, Output = &'a Weight>,
     {
         let mut queue = BinaryHeap::new();
         queue.push(Reverse(Header(Default::default(), from)));
@@ -59,13 +59,12 @@ where
     fn cache_path(&mut self, to: &Vertex)
     where
         Orientation: orientation::Orientation,
-        Weight : Ord + Clone + AddAssign,
-        Graph : Neighbours<'a, Orientation, Vertex, Edge = &'a Edge>
-
+        Weight: Ord + Clone + AddAssign,
+        Graph: Neighbours<'a, Orientation, Vertex, Edge = &'a Edge>,
     {
         while let Some(Reverse(Header(mut weight, from))) = self.queue.pop() {
             for (edge, to) in self.graph.neighbours(from).into_iter().flatten() {
-                if let Some((w,_,_)) = self.visited.get(from){
+                if let Some((w, _, _)) = self.visited.get(from) {
                     weight.add_assign(w.clone());
                 }
 
@@ -75,9 +74,9 @@ where
 
                 self.visited.insert(to, (weight.clone(), from, edge));
             }
-            if let Some((max_weight,_,_)) = self.visited.get(to){
-                if let Some(Reverse(Header(weight, _))) = self.queue.peek(){
-                    if max_weight < weight{
+            if let Some((max_weight, _, _)) = self.visited.get(to) {
+                if let Some(Reverse(Header(weight, _))) = self.queue.peek() {
+                    if max_weight < weight {
                         break;
                     }
                 }
@@ -88,11 +87,11 @@ where
 
 impl<'a, Vertex, Edge, Graph, Weight, Orientation> Path<'a, Vertex, Edge>
     for Dijkstra<'a, Graph, Vertex, Edge, Weight, Orientation>
-    where
-        Vertex : Eq + Hash,
-        Orientation: orientation::Orientation,
-        Weight : Ord  + Clone + AddAssign,
-        Graph : Neighbours<'a, Orientation, Vertex, Edge = &'a Edge>
+where
+    Vertex: Eq + Hash,
+    Orientation: orientation::Orientation,
+    Weight: Ord + Clone + AddAssign,
+    Graph: Neighbours<'a, Orientation, Vertex, Edge = &'a Edge>,
 {
     type IntoIter = Vec<(&'a Vertex, &'a Edge)>;
 
@@ -110,8 +109,8 @@ impl<'a, Graph, Vertex, Edge, Weight, Orientation>
 where
     Weight: 'a + Ord + Clone + Default,
     Orientation: orientation::Orientation,
-    Graph:
-        Neighbours<'a, Orientation, Vertex, Edge = &'a Edge> + GetEdge<'a, Edge, Output = &'a Weight>,
+    Graph: Neighbours<'a, Orientation, Vertex, Edge = &'a Edge>
+        + GetEdge<'a, Edge, Output = &'a Weight>,
     Vertex: 'a + Eq + Hash,
 {
     fn path(&'a self, from: &'a Vertex) -> Dijkstra<'a, Graph, Vertex, Edge, Weight, Orientation> {
@@ -149,9 +148,9 @@ mod tests {
 
         let _ = connected.add_edge(&a, &b, ("E0", 0));
 
-        let mut path : Dijkstra<_, _, _, _, _> = connected.path(&a);
+        let mut path: Dijkstra<_, _, _, _, _> = connected.path(&a);
 
-        assert_eq!(path.to(&b), Some(vec![(&"V0",&"E0")]));
+        assert_eq!(path.to(&b), Some(vec![(&"V0", &"E0")]));
     }
 
     #[test]
@@ -162,12 +161,12 @@ mod tests {
         let b = connected.add_vertex(("V1", ())).unwrap().clone();
         let c = connected.add_vertex(("V2", ())).unwrap().clone();
 
-        let _ = connected.add_edge(&a, &b, ("E0",0));
-        let _ = connected.add_edge(&b, &c, ("E1",1));
+        let _ = connected.add_edge(&a, &b, ("E0", 0));
+        let _ = connected.add_edge(&b, &c, ("E1", 1));
 
-        let mut path : Dijkstra<_, _, _, _, _> = connected.path(&a);
+        let mut path: Dijkstra<_, _, _, _, _> = connected.path(&a);
 
-        assert_eq!(path.to(&c), Some(vec![(&"V0",&"E0"), (&"V1",&"E1")]));
+        assert_eq!(path.to(&c), Some(vec![(&"V0", &"E0"), (&"V1", &"E1")]));
     }
 
     #[test]
@@ -178,13 +177,13 @@ mod tests {
         let b = connected.add_vertex(("V1", ())).unwrap().clone();
         let c = connected.add_vertex(("V2", ())).unwrap().clone();
 
-        let _ = connected.add_edge(&a, &b, ("E0",0));
-        let _ = connected.add_edge(&b, &c, ("E1",0));
-        let _ = connected.add_edge(&a, &c, ("E2",3));
+        let _ = connected.add_edge(&a, &b, ("E0", 0));
+        let _ = connected.add_edge(&b, &c, ("E1", 0));
+        let _ = connected.add_edge(&a, &c, ("E2", 3));
 
-        let mut path : Dijkstra<_, _, _, _, _> = connected.path(&a);
+        let mut path: Dijkstra<_, _, _, _, _> = connected.path(&a);
 
-        assert_eq!(path.to(&c), Some(vec![(&"V0",&"E0"), (&"V1",&"E1")]));
+        assert_eq!(path.to(&c), Some(vec![(&"V0", &"E0"), (&"V1", &"E1")]));
     }
 
     #[test]
@@ -195,15 +194,13 @@ mod tests {
         let b = connected.add_vertex(("V1", ())).unwrap().clone();
         let c = connected.add_vertex(("V2", ())).unwrap().clone();
 
-        let _ = connected.add_edge(&a, &b, ("E0",0));
-        let _ = connected.add_edge(&b, &c, ("E1",1));
+        let _ = connected.add_edge(&a, &b, ("E0", 0));
+        let _ = connected.add_edge(&b, &c, ("E1", 1));
 
-        let mut path : Dijkstra<_, _, _, _, _> = connected.path(&a);
+        let mut path: Dijkstra<_, _, _, _, _> = connected.path(&a);
 
-        assert_eq!(path.to(&b), Some(vec![(&"V0",&"E0")]));
+        assert_eq!(path.to(&b), Some(vec![(&"V0", &"E0")]));
 
-        assert_eq!(path.to(&c), Some(vec![(&"V0",&"E0"), (&"V1",&"E1")]));
+        assert_eq!(path.to(&c), Some(vec![(&"V0", &"E0"), (&"V1", &"E1")]));
     }
-
-
 }

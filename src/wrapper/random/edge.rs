@@ -7,6 +7,7 @@ use rand::distributions::{Distribution, Standard};
 use rand::random;
 use std::marker::PhantomData;
 use std::ops::{Deref, DerefMut};
+use crate::dev::transform::{Transform, Transformer};
 
 #[derive(Clone, Debug, Eq, PartialEq, Default)]
 pub struct Edge<Graph, EdgeKey = usize> {
@@ -165,9 +166,22 @@ where
     }
 }
 
+impl<E, VKmap, Vmap, EKmap, Emap, E2, Graph, Graph2>
+Transform<VKmap, Vmap, EKmap, Emap, Edge<Graph, E>>
+for Edge<Graph2, E2>
+    where
+        Graph2 : Transform<VKmap, Vmap, EKmap, Emap, Graph> {
+    fn collect(graph: Edge<Graph, E>, maps: (VKmap, Vmap, EKmap, Emap)) -> Self {
+        Self{
+            graph: Graph2::collect(graph.graph, maps),
+            edge_key: Default::default()
+        }
+    }
+}
+
 impl<Graph, EdgeKey> Merge for Edge<Graph, EdgeKey>
-where
-    Graph: Merge,
+    where
+        Graph: Merge,
 {
     fn merge(self, other: Self) -> Result<Self, (Self, Self)> {
         let output = self.graph.merge(other.graph);
