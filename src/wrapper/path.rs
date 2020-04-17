@@ -181,9 +181,6 @@ for Path<Graph2>
     where
         Graph2 : Transform<VKmap, Vmap, EKmap, Emap, Graph>{
     fn collect(graph: Path<Graph>, function: (VKmap, Vmap, EKmap, Emap)) -> Self {
-        let graph = Graph2::collect(graph.graph, function);
-        Self{
-            graph
-        }
+        Graph2::collect(graph.graph, function).into()
     }
 }

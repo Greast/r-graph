@@ -166,19 +166,6 @@ where
     }
 }
 
-impl<E, VKmap, Vmap, EKmap, Emap, E2, Graph, Graph2>
-Transform<VKmap, Vmap, EKmap, Emap, Edge<Graph, E>>
-for Edge<Graph2, E2>
-    where
-        Graph2 : Transform<VKmap, Vmap, EKmap, Emap, Graph> {
-    fn collect(graph: Edge<Graph, E>, maps: (VKmap, Vmap, EKmap, Emap)) -> Self {
-        Self{
-            graph: Graph2::collect(graph.graph, maps),
-            edge_key: Default::default()
-        }
-    }
-}
-
 impl<Graph, EdgeKey> Merge for Edge<Graph, EdgeKey>
     where
         Graph: Merge,
@@ -189,5 +176,15 @@ impl<Graph, EdgeKey> Merge for Edge<Graph, EdgeKey>
             Ok(x) => Ok(x.into()),
             Err((x, y)) => Err((x.into(), y.into())),
         }
+    }
+}
+
+impl< VKmap, Vmap, EKmap, Emap, Graph, EdgeKey, Graph2, EdgeKey2>
+Transform<VKmap, Vmap, EKmap, Emap, Edge<Graph, EdgeKey>>
+for Edge<Graph2, EdgeKey2>
+    where
+        Graph2 : Transform<VKmap, Vmap, EKmap, Emap, Graph> {
+    fn collect(graph: Edge<Graph, EdgeKey>, maps: (VKmap, Vmap, EKmap, Emap)) -> Self {
+        Graph2::collect(graph.graph, maps).into()
     }
 }
