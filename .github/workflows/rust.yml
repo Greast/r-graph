@@ -9,6 +9,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v1
+    - name: setup
+      run: rustup install nightly
     - name: Format
       run: cargo fmt
     - name: Build
