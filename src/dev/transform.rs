@@ -57,7 +57,7 @@ impl<VKmap, Vmap, EKmap, Emap, VK, V, EK, E, Graph>
     pub fn map_vertex_key<G, T, R>(
         self,
         function: G,
-    ) -> Transformer<<VKmap as Dot<VK, T, R, G>>::Output, Vmap, EKmap , Emap, VK, V, R, E, Graph>
+    ) -> Transformer<<VKmap as Dot<VK, T, R, G>>::Output, Vmap, EKmap , Emap, R, V, EK, E, Graph>
         where
             VKmap : Dot<VK, T, R, G>
 
@@ -91,7 +91,7 @@ impl<VKmap, Vmap, EKmap, Emap, VK, V, EK, E, Graph>
             graph: self.graph,
         }
     }
-    
+
     pub fn map_edge_key<G, T, R>(
         self,
         function: G,
@@ -100,12 +100,11 @@ impl<VKmap, Vmap, EKmap, Emap, VK, V, EK, E, Graph>
             EKmap : Dot<EK, T, R, G>
 
     {
-        let ek_map = self.mapper.ek_map;
         Transformer {
             mapper: Mapper {
                 vk_map: self.mapper.vk_map,
                 v_map: self.mapper.v_map,
-                ek_map: ek_map.dot(function),
+                ek_map: self.mapper.ek_map.dot(function),
                 e_map: self.mapper.e_map,
                 phantom: Default::default(),
             },
@@ -114,28 +113,25 @@ impl<VKmap, Vmap, EKmap, Emap, VK, V, EK, E, Graph>
     }
 
 
-/*
-    pub fn map_edge<Func, T, R>(
+
+    pub fn map_edge<G, T, R>(
         self,
-        function: Func,
-    ) -> Transformer<VKmap, Vmap, EKmap, Box<dyn 'a + Fn(T) -> R>, VK, V, EK, R, Graph>
+        function: G,
+    ) -> Transformer<VKmap, Vmap, EKmap, <Emap as Dot<E, T, R, G>>::Output, VK, V, EK, R, Graph>
     where
-        Func: 'a + Fn(V) -> R,
-        Emap: Fn(T) -> V,
+        Emap : Dot<E, T, R, G>,
     {
-        let e_map = self.mapper.e_map;
         Transformer {
             mapper: Mapper {
                 vk_map: self.mapper.vk_map,
                 v_map: self.mapper.v_map,
                 ek_map: self.mapper.ek_map,
-                e_map: Box::new(move |x| function((e_map)(x))),
+                e_map: self.mapper.e_map.dot(function),
                 phantom: Default::default(),
             },
             graph: self.graph,
         }
     }
-    */
 }
 
 pub trait Transform<VKmap, Vmap, EKmap, Emap, Graph>
