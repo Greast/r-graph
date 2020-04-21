@@ -62,10 +62,9 @@ impl<VKmap, Vmap, EKmap, Emap, VK, V, EK, E, Graph>
             VKmap : Dot<VK, T, R, G>
 
     {
-        let vk_map = self.mapper.vk_map;
         Transformer {
             mapper: Mapper {
-                vk_map: vk_map.dot(function),
+                vk_map: self.mapper.vk_map.dot(function),
                 v_map: self.mapper.v_map,
                 ek_map: self.mapper.ek_map,
                 e_map: self.mapper.e_map,
@@ -74,51 +73,17 @@ impl<VKmap, Vmap, EKmap, Emap, VK, V, EK, E, Graph>
             graph: self.graph,
         }
     }
-    /*
-    pub fn map_vertex_key<'a, Func, T, R>(
+    pub fn map_vertex<G, T, R>(
         self,
-        function: Func,
-    ) -> Transformer<Box<dyn 'a + Fn(T) -> R>, Vmap, EKmap, Emap, R, V, EK, E, Graph>
-    where
-        Func: 'a + Fn(VK) -> R,
-        VKmap: Fn(T) -> VK,
-        Graph: 'a,
-        E: 'a,
-        EK: 'a,
-        V: 'a,
-        VK: 'a,
-        Emap: 'a,
-        EKmap: 'a,
-        Vmap: 'a,
-        VKmap: 'a,
-
+        function: G,
+    ) -> Transformer<VKmap, <Vmap as Dot<V, T, R, G>>::Output, EKmap, Emap, VK, R, EK, E, Graph>
+        where
+            Vmap: Dot<V, T, R, G>,
     {
-        let vk_map = self.mapper.vk_map;
-        Transformer {
-            mapper: Mapper {
-                vk_map: Box::new(move |x| function((vk_map)(x))),
-                v_map: self.mapper.v_map,
-                ek_map: self.mapper.ek_map,
-                e_map: self.mapper.e_map,
-                phantom: Default::default(),
-            },
-            graph: self.graph,
-        }
-    }
-
-    pub fn map_vertex<Func, T, R>(
-        self,
-        function: Func,
-    ) -> Transformer<VKmap, Box<dyn 'a + Fn(T) -> R>, EKmap, Emap, VK, R, EK, E, Graph>
-    where
-        Func: 'a + Fn(V) -> R,
-        Vmap: Fn(T) -> V,
-    {
-        let v_map = self.mapper.v_map;
         Transformer {
             mapper: Mapper {
                 vk_map: self.mapper.vk_map,
-                v_map: Box::new(move |x| function((v_map)(x))),
+                v_map: self.mapper.v_map.dot(function),
                 ek_map: self.mapper.ek_map,
                 e_map: self.mapper.e_map,
                 phantom: Default::default(),
@@ -126,7 +91,7 @@ impl<VKmap, Vmap, EKmap, Emap, VK, V, EK, E, Graph>
             graph: self.graph,
         }
     }
-    */
+    
     pub fn map_edge_key<G, T, R>(
         self,
         function: G,
