@@ -26,7 +26,7 @@ where
         Weight: 'a + Ord + Clone + Default,
         Orientation: orientation::Orientation,
         Graph: Neighbours<'a, Orientation, Vertex, Edge = &'a Edge>
-            + GetEdge<'a, Edge, Output = &'a Weight>,
+            + GetEdge<Edge, Output = Weight>,
     {
         let mut queue = BinaryHeap::new();
         queue.push(Reverse(Header(Default::default(), from)));
@@ -110,7 +110,7 @@ where
     Weight: 'a + Ord + Clone + Default,
     Orientation: orientation::Orientation,
     Graph: Neighbours<'a, Orientation, Vertex, Edge = &'a Edge>
-        + GetEdge<'a, Edge, Output = &'a Weight>,
+        + GetEdge<Edge, Output = Weight>,
     Vertex: 'a + Eq + Hash,
 {
     fn path(&'a self, from: &'a Vertex) -> Dijkstra<'a, Graph, Vertex, Edge, Weight, Orientation> {

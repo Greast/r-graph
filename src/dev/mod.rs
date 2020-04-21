@@ -52,14 +52,14 @@ pub trait AddVertex<Input> {
     fn add_vertex(&mut self, vertex: Input) -> Result<Self::Key, Input>;
 }
 
-pub trait GetVertex<'a, Key> {
+pub trait GetVertex<Key> {
     type Output;
-    fn get_vertex(&'a self, key: &Key) -> Option<Self::Output>;
+    fn get_vertex(&self, key: &Key) -> Option<&Self::Output>;
 }
 
-pub trait GetEdge<'a, Key> {
+pub trait GetEdge<Key> {
     type Output;
-    fn get_edge(&'a self, key: &Key) -> Option<Self::Output>;
+    fn get_edge(&self, key: &Key) -> Option<&Self::Output>;
 }
 
 pub trait GetEdgeTo<'a, Key> {
@@ -83,9 +83,26 @@ where
     fn edges(&'a self) -> Self::Output;
 }
 
-pub trait Merge
+pub trait Merge<Rhs = Self>
 where
     Self: Sized,
 {
-    fn merge(self, _: Self) -> Result<Self, (Self, Self)>;
+    type Output;
+    fn merge(self, _: Rhs) -> Result<Self::Output, (Self, Rhs)>;
+}
+
+pub trait Dot<T, R, R2, G>{
+    type Output : Fn(T) -> R2;
+    fn dot(self, function:G) -> Self::Output;
+}
+
+impl <T, R, R2, G, F> Dot<T, R, R2, G> for F
+    where
+        F : Fn(T) -> R,
+        G : Fn(R) -> R2,{
+    type Output = impl Fn(T) -> R2;
+
+    fn dot(self, function: G) -> Self::Output  {
+        move |x| function(self(x))
+    }
 }
