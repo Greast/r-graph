@@ -152,30 +152,28 @@ where
     }
 }
 
-impl<'a, VertexKey, Vertex, EdgeKey, Edge> GetVertex<'a, VertexKey>
+impl<'a, VertexKey, Vertex, EdgeKey, Edge> GetVertex<VertexKey>
     for Simple<VertexKey, Vertex, EdgeKey, Edge>
 where
     VertexKey: Eq + Hash,
     EdgeKey: Eq + Hash,
-    Vertex: 'a,
 {
-    type Output = &'a Vertex;
+    type Output = Vertex;
 
-    fn get_vertex(&'a self, key: &VertexKey) -> Option<Self::Output> {
+    fn get_vertex(&self, key: &VertexKey) -> Option<&Self::Output> {
         self.vertices.get(key).map(|node| &node.data)
     }
 }
 
-impl<'a, VertexKey, Vertex, EdgeKey, Edge> GetEdge<'a, EdgeKey>
+impl<VertexKey, Vertex, EdgeKey, Edge> GetEdge<EdgeKey>
     for Simple<VertexKey, Vertex, EdgeKey, Edge>
 where
     VertexKey: Eq + Hash,
     EdgeKey: Eq + Hash,
-    Edge: 'a,
 {
-    type Output = &'a Edge;
+    type Output = Edge;
 
-    fn get_edge(&'a self, key: &EdgeKey) -> Option<Self::Output> {
+    fn get_edge(&self, key: &EdgeKey) -> Option<&Self::Output> {
         self.edges.get(key).map(|node| &node.data)
     }
 }

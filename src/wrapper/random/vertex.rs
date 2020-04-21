@@ -1,13 +1,11 @@
 use crate::dev::orientation::AddEdge;
-use crate::dev::{
-    orientation, AddVertex, Edges, GetEdge, GetEdgeTo, GetVertex, Merge, Neighbours, RemoveEdge,
-    RemoveVertex, Vertices,
-};
+use crate::dev::{orientation, AddVertex, Edges, GetEdge, GetEdgeTo, GetVertex, Merge, Neighbours, RemoveEdge, RemoveVertex, Vertices, Dot};
 use rand::distributions::{Distribution, Standard};
 use rand::random;
 use std::marker::PhantomData;
 use std::ops::{Deref, DerefMut};
-use crate::dev::transform::Transform;
+use crate::dev::transform::{Transform, Transformer};
+use std::rc::Rc;
 
 #[derive(Clone, Debug, Eq, PartialEq, Default)]
 pub struct Vertex<Graph, VertexKey = usize> {
@@ -94,24 +92,24 @@ where
     }
 }
 
-impl<'a, Graph, VertexKey> GetVertex<'a, VertexKey> for Vertex<Graph, VertexKey>
+impl<Graph, VertexKey> GetVertex<VertexKey> for Vertex<Graph, VertexKey>
 where
-    Graph: GetVertex<'a, VertexKey>,
+    Graph: GetVertex<VertexKey>,
 {
-    type Output = <Graph as GetVertex<'a, VertexKey>>::Output;
+    type Output = <Graph as GetVertex<VertexKey>>::Output;
 
-    fn get_vertex(&'a self, key: &VertexKey) -> Option<Self::Output> {
+    fn get_vertex(&self, key: &VertexKey) -> Option<&Self::Output> {
         self.graph.get_vertex(key)
     }
 }
 
-impl<'a, Graph, EdgeKey, VertexKey> GetEdge<'a, EdgeKey> for Vertex<Graph, VertexKey>
+impl<Graph, EdgeKey, VertexKey> GetEdge<EdgeKey> for Vertex<Graph, VertexKey>
 where
-    Graph: GetEdge<'a, EdgeKey>,
+    Graph: GetEdge<EdgeKey>,
 {
-    type Output = <Graph as GetEdge<'a, EdgeKey>>::Output;
+    type Output = <Graph as GetEdge<EdgeKey>>::Output;
 
-    fn get_edge(&'a self, key: &EdgeKey) -> Option<Self::Output> {
+    fn get_edge(&self, key: &EdgeKey) -> Option<&Self::Output> {
         self.graph.get_edge(key)
     }
 }
@@ -166,11 +164,12 @@ where
     }
 }
 
-impl<Graph, VertexKey> Merge for Vertex<Graph, VertexKey>
+impl<Graph2, Graph, VertexKey> Merge<Vertex<Graph2, VertexKey>> for Vertex<Graph, VertexKey>
 where
-    Graph: Merge,
+    Graph: Merge<Graph2>,
 {
-    fn merge(self, other: Self) -> Result<Self, (Self, Self)> {
+    type Output = <Graph as Merge<Graph2>>::Output;
+    fn merge(self, other: Vertex<Graph2, VertexKey>) -> Result<Self::Output, (Self, Vertex<Graph2, VertexKey>)> {
         let output = self.graph.merge(other.graph);
         match output {
             Ok(x) => Ok(x.into()),
@@ -179,6 +178,40 @@ where
     }
 }
 
+
+impl<'a, VKmap, Vmap, EKmap, Emap, VK, V, EK, E, Graph> Merge for Transformer<VKmap, Vmap, EKmap, Emap, VK, V, EK, E, Vertex<Graph, VK>>
+    where
+        Graph: 'a + Merge + GetVertex<VK>,
+        Standard : Distribution<VK>,
+        VKmap : Fn(VK) -> VK,
+        Vertex<Graph, VK> : Transform<<VKmap as Dot<VK,VK,VK, Box<dyn 'a + Fn(VK) -> VK>>>::Output, Vmap, EKmap, Emap, Vertex<Graph, VK>>,
+        EK : 'a,
+        E : 'a,
+        V : 'a,
+        VK : 'a,
+        Emap : 'a,
+        EKmap : 'a,
+        Vmap : 'a,
+        VKmap : 'a,
+{
+    type Output = <Vertex<Graph, VK> as Merge>::Output;
+
+    fn merge(self, other: Self) -> Result<Self::Output, (Self, Self)> {
+        let rc = Rc::new(other);
+
+        let rc1 = rc.clone();
+        let closure:Box<dyn Fn(VK) -> VK> = Box::new(move |mut key|{
+            while rc1.get_vertex(&key).is_some(){
+                key = random();
+            }
+            key
+        });
+
+        let this:Vertex<Graph, VK> = self.map_vertex_key(closure ).collect();
+        let other = Rc::try_unwrap(rc).ok().unwrap();
+        Ok(this.merge(other.graph).ok().unwrap())
+    }
+}
 impl< VKmap, Vmap, EKmap, Emap, Graph, VertexKey, Graph2, VertexKey2>
 Transform<VKmap, Vmap, EKmap, Emap, Vertex<Graph, VertexKey>>
 for Vertex<Graph2, VertexKey2>

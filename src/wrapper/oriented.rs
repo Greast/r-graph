@@ -100,24 +100,24 @@ where
     }
 }
 
-impl<'a, Graph, Orientation, VertexKey> GetVertex<'a, VertexKey> for Oriented<Graph, Orientation>
+impl<Graph, Orientation, VertexKey> GetVertex<VertexKey> for Oriented<Graph, Orientation>
 where
-    Graph: GetVertex<'a, VertexKey>,
+    Graph: GetVertex<VertexKey>,
 {
-    type Output = <Graph as GetVertex<'a, VertexKey>>::Output;
+    type Output = <Graph as GetVertex<VertexKey>>::Output;
 
-    fn get_vertex(&'a self, key: &VertexKey) -> Option<Self::Output> {
+    fn get_vertex(&self, key: &VertexKey) -> Option<&Self::Output> {
         self.graph.get_vertex(key)
     }
 }
 
-impl<'a, Graph, Orientation, EdgeKey> GetEdge<'a, EdgeKey> for Oriented<Graph, Orientation>
+impl<Graph, Orientation, EdgeKey> GetEdge<EdgeKey> for Oriented<Graph, Orientation>
 where
-    Graph: GetEdge<'a, EdgeKey>,
+    Graph: GetEdge<EdgeKey>,
 {
-    type Output = <Graph as GetEdge<'a, EdgeKey>>::Output;
+    type Output = <Graph as GetEdge<EdgeKey>>::Output;
 
-    fn get_edge(&'a self, key: &EdgeKey) -> Option<Self::Output> {
+    fn get_edge(&self, key: &EdgeKey) -> Option<&Self::Output> {
         self.graph.get_edge(key)
     }
 }
@@ -172,17 +172,19 @@ where
     }
 }
 
-impl<Graph, Orientation> Merge for Oriented<Graph, Orientation>
+impl<Graph2, Graph, Orientation> Merge<Oriented<Graph2, Orientation>> for Oriented<Graph, Orientation>
 where
-    Graph: Merge,
+    Graph: Merge<Graph2>,
 {
-    fn merge(self, other: Self) -> Result<Self, (Self, Self)> {
+    type Output = Oriented<<Graph as Merge<Graph2>>::Output, Orientation>;
+
+    fn merge(self, other: Oriented<Graph2, Orientation>) -> Result<Self::Output, (Self, Oriented<Graph2, Orientation>)> {
         let output = self.graph.merge(other.graph);
         match output {
-            Ok(x) => Ok(Self::new(x, self.orientation)),
+            Ok(x) => Ok(x.orient(self.orientation)),
             Err((x, y)) => Err((
-                Self::new(x, self.orientation),
-                Self::new(y, other.orientation),
+                x.orient(self.orientation),
+                y.orient(other.orientation),
             )),
         }
     }

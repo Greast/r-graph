@@ -91,24 +91,24 @@ where
     }
 }
 
-impl<'a, Key, Graph> GetVertex<'a, Key> for Path<Graph>
+impl<Key, Graph> GetVertex<Key> for Path<Graph>
 where
-    Graph: GetVertex<'a, Key>,
+    Graph: GetVertex<Key>,
 {
-    type Output = <Graph as GetVertex<'a, Key>>::Output;
+    type Output = <Graph as GetVertex<Key>>::Output;
 
-    fn get_vertex(&'a self, key: &Key) -> Option<Self::Output> {
+    fn get_vertex(&self, key: &Key) -> Option<&Self::Output> {
         self.graph.get_vertex(key)
     }
 }
 
-impl<'a, Key, Graph> GetEdge<'a, Key> for Path<Graph>
+impl<Key, Graph> GetEdge<Key> for Path<Graph>
 where
-    Graph: GetEdge<'a, Key>,
+    Graph: GetEdge<Key>,
 {
-    type Output = <Graph as GetEdge<'a, Key>>::Output;
+    type Output = <Graph as GetEdge<Key>>::Output;
 
-    fn get_edge(&'a self, key: &Key) -> Option<Self::Output> {
+    fn get_edge(&self, key: &Key) -> Option<&Self::Output> {
         self.graph.get_edge(key)
     }
 }
@@ -162,11 +162,13 @@ where
     }
 }
 
-impl<Graph> Merge for Path<Graph>
+impl<Graph2, Graph> Merge<Path<Graph2>> for Path<Graph>
 where
-    Graph: Merge,
+    Graph: Merge<Graph2>,
 {
-    fn merge(self, other: Self) -> Result<Self, (Self, Self)> {
+    type Output = Path<<Graph as Merge<Graph2>>::Output>;
+
+    fn merge(self, other: Path<Graph2>) -> Result<Self::Output, (Self, Path<Graph2>)> {
         let output = self.graph.merge(other.graph);
         match output {
             Ok(x) => Ok(x.into()),
