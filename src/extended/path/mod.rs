@@ -1,5 +1,6 @@
 pub mod breadth;
 pub mod dijkstra;
+pub mod a_star;
 
 trait Path<'a, Vertex, Edge>
 where
