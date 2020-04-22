@@ -22,6 +22,6 @@ impl<'a, VertexKey, EdgeKey, Graph, Function, Distance, Orientation> Path<'a, Ve
     type IntoIter = ();
 
     fn to(&mut self, to: &'a VertexKey) -> Option<Self::IntoIter> {
-        self.
+        unimplemented!()
     }
 }
