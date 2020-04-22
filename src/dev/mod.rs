@@ -25,17 +25,21 @@ where
     fn neighbours(&'a self, vertex: &VertexKey) -> Option<Self::IntoIter>;
 }
 
+///Contains types and traits for edges and their orientation.
 pub mod orientation {
     pub trait Orientation {}
 
+    ///Tells the current context, that concerning edge(s) are to be interpreted as directed.
     #[derive(Default, Debug, Eq, PartialEq)]
     pub struct Directed;
     impl Orientation for Directed {}
 
+    ///Tells the current context, that concerning edge(s) are to be interpreted as undirected/bidirected.
     #[derive(Default, Debug, Eq, PartialEq)]
     pub struct Undirected;
     impl Orientation for Undirected {}
 
+    ///Adds the given edge to the given graph, connected to the given nodes. The orientation of this edge changes based on the given orientation type.
     pub trait AddEdge<O: Orientation, VertexKey, Edge> {
         type EdgeKey;
         fn add_edge(

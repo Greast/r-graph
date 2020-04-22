@@ -1,3 +1,5 @@
+use std::marker::PhantomData;
+
 pub mod breadth;
 pub mod dijkstra;
 pub mod a_star;
@@ -13,4 +15,22 @@ where
 
 trait PathFinder<'a, Key, Finder> {
     fn path(&'a self, from: &'a Key) -> Finder;
+}
+
+struct DistanceFunctor<'a, Graph, Dist>{
+    graph : &'a Graph,
+    dist : Dist,
+}
+
+trait PathDistanceFinder<'a, Dist, Graph>{
+    fn dist(&'a self, dist: Dist) -> DistanceFunctor<'a, Graph, Dist>;
+}
+
+impl <'a, Dist, Graph> PathDistanceFinder<'a, Dist, Graph> for Graph{
+    fn dist(&'a self, dist: Dist) -> DistanceFunctor<'a, Graph, Dist> {
+        DistanceFunctor{
+            graph: self,
+            dist,
+        }
+    }
 }
