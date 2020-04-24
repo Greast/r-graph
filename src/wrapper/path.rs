@@ -1,10 +1,10 @@
 use crate::dev::orientation::AddEdge;
+use crate::dev::transform::Transform;
 use crate::dev::{
     orientation, AddVertex, Edges, GetEdge, GetEdgeTo, GetVertex, Merge, Neighbours, RemoveEdge,
     RemoveVertex, Vertices,
 };
 use std::ops::{Deref, DerefMut};
-use crate::dev::transform::Transform;
 
 ///The edges for this graph are hashed along with its from-node, allowing for wrapper such as those found in deterministic automaton.
 #[derive(Clone, Debug, Eq, PartialEq, Default)]
@@ -177,11 +177,11 @@ where
     }
 }
 
-impl<VKmap, Vmap, EKmap, Emap, Graph, Graph2>
-Transform<VKmap, Vmap, EKmap, Emap, Path<Graph>>
-for Path<Graph2>
-    where
-        Graph2 : Transform<VKmap, Vmap, EKmap, Emap, Graph>{
+impl<VKmap, Vmap, EKmap, Emap, Graph, Graph2> Transform<VKmap, Vmap, EKmap, Emap, Path<Graph>>
+    for Path<Graph2>
+where
+    Graph2: Transform<VKmap, Vmap, EKmap, Emap, Graph>,
+{
     fn collect(graph: Path<Graph>, function: (VKmap, Vmap, EKmap, Emap)) -> Self {
         Graph2::collect(graph.graph, function).into()
     }

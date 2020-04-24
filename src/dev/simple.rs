@@ -165,8 +165,7 @@ where
     }
 }
 
-impl<VertexKey, Vertex, EdgeKey, Edge> GetEdge<EdgeKey>
-    for Simple<VertexKey, Vertex, EdgeKey, Edge>
+impl<VertexKey, Vertex, EdgeKey, Edge> GetEdge<EdgeKey> for Simple<VertexKey, Vertex, EdgeKey, Edge>
 where
     VertexKey: Eq + Hash,
     EdgeKey: Eq + Hash,
@@ -269,8 +268,7 @@ where
 }
 
 impl<VK, V, EK, E, VKmap, Vmap, EKmap, Emap, VK2, V2, EK2, E2>
-    Transform<VKmap, Vmap, EKmap, Emap, Simple<VK, V, EK, E>>
-    for Simple<VK2, V2, EK2, E2>
+    Transform<VKmap, Vmap, EKmap, Emap, Simple<VK, V, EK, E>> for Simple<VK2, V2, EK2, E2>
 where
     VK2: Eq + Hash,
     EK2: Eq + Hash,

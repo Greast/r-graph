@@ -5,7 +5,7 @@ use std::cmp::Reverse;
 use std::collections::{BinaryHeap, HashMap};
 use std::hash::Hash;
 use std::marker::PhantomData;
-use std::ops::AddAssign;
+use std::ops::{AddAssign, Deref};
 
 ///Dynamic programming version of dijkstras algorithm. Allows for efficient search of multiple end points.
 struct Dijkstra<'a, Graph, Vertex, Edge, Weight, Orientation> {
@@ -25,8 +25,8 @@ where
     where
         Weight: 'a + Ord + Clone + Default,
         Orientation: orientation::Orientation,
-        Graph: Neighbours<'a, Orientation, Vertex, Edge = &'a Edge>
-            + GetEdge<Edge, Output = Weight>,
+        Graph:
+            Neighbours<'a, Orientation, Vertex, Edge = &'a Edge> + GetEdge<Edge, Output = Weight>,
     {
         let mut queue = BinaryHeap::new();
         queue.push(Reverse(Header(Default::default(), from)));
@@ -59,12 +59,17 @@ where
     fn cache_path(&mut self, to: &Vertex)
     where
         Orientation: orientation::Orientation,
-        Weight: Ord + Clone + AddAssign,
-        Graph: Neighbours<'a, Orientation, Vertex, Edge = &'a Edge>,
+        Graph: Neighbours<'a, Orientation, Vertex, Edge = &'a Edge> + GetEdge<Edge>,
+        <Graph as GetEdge<Edge>>::Output: Clone,
+        Weight: Ord + Clone + AddAssign + AddAssign<<Graph as GetEdge<Edge>>::Output>,
     {
         while let Some(Reverse(Header(mut weight, from))) = self.queue.pop() {
             for (edge, to) in self.graph.neighbours(from).into_iter().flatten() {
                 if let Some((w, _, _)) = self.visited.get(from) {
+                    weight.add_assign(w.clone());
+                }
+
+                if let Some(w) = self.graph.get_edge(edge) {
                     weight.add_assign(w.clone());
                 }
 
@@ -90,8 +95,9 @@ impl<'a, Vertex, Edge, Graph, Weight, Orientation> Path<'a, Vertex, Edge>
 where
     Vertex: Eq + Hash,
     Orientation: orientation::Orientation,
-    Weight: Ord + Clone + AddAssign,
-    Graph: Neighbours<'a, Orientation, Vertex, Edge = &'a Edge>,
+    Graph: Neighbours<'a, Orientation, Vertex, Edge = &'a Edge> + GetEdge<Edge>,
+    <Graph as GetEdge<Edge>>::Output: Clone,
+    Weight: Ord + Clone + AddAssign + AddAssign<<Graph as GetEdge<Edge>>::Output>,
 {
     type IntoIter = Vec<(&'a Vertex, &'a Edge)>;
 
@@ -109,8 +115,7 @@ impl<'a, Graph, Vertex, Edge, Weight, Orientation>
 where
     Weight: 'a + Ord + Clone + Default,
     Orientation: orientation::Orientation,
-    Graph: Neighbours<'a, Orientation, Vertex, Edge = &'a Edge>
-        + GetEdge<Edge, Output = Weight>,
+    Graph: Neighbours<'a, Orientation, Vertex, Edge = &'a Edge> + GetEdge<Edge, Output = Weight>,
     Vertex: 'a + Eq + Hash,
 {
     fn path(&'a self, from: &'a Vertex) -> Dijkstra<'a, Graph, Vertex, Edge, Weight, Orientation> {

@@ -95,18 +95,19 @@ where
     fn merge(self, _: Rhs) -> Result<Self::Output, (Self, Rhs)>;
 }
 
-pub trait Dot<T, R, R2, G>{
-    type Output : Fn(T) -> R2;
-    fn dot(self, function:G) -> Self::Output;
+pub trait Dot<T, R, R2, G> {
+    type Output: Fn(T) -> R2;
+    fn dot(self, function: G) -> Self::Output;
 }
 
-impl <T, R, R2, G, F> Dot<T, R, R2, G> for F
-    where
-        F : Fn(T) -> R,
-        G : Fn(R) -> R2,{
+impl<T, R, R2, G, F> Dot<T, R, R2, G> for F
+where
+    F: Fn(T) -> R,
+    G: Fn(R) -> R2,
+{
     type Output = impl Fn(T) -> R2;
 
-    fn dot(self, function: G) -> Self::Output  {
+    fn dot(self, function: G) -> Self::Output {
         move |x| function(self(x))
     }
 }

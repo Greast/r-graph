@@ -1,10 +1,10 @@
 use crate::dev::orientation::AddEdge;
+use crate::dev::transform::Transform;
 use crate::dev::{
     orientation, AddVertex, Edges, GetEdge, GetEdgeTo, GetVertex, Merge, Neighbours, RemoveEdge,
     RemoveVertex, Vertices,
 };
 use std::ops::{Deref, DerefMut};
-use crate::dev::transform::Transform;
 
 pub trait Orient<Orientation>
 where
@@ -172,29 +172,31 @@ where
     }
 }
 
-impl<Graph2, Graph, Orientation> Merge<Oriented<Graph2, Orientation>> for Oriented<Graph, Orientation>
+impl<Graph2, Graph, Orientation> Merge<Oriented<Graph2, Orientation>>
+    for Oriented<Graph, Orientation>
 where
     Graph: Merge<Graph2>,
 {
     type Output = Oriented<<Graph as Merge<Graph2>>::Output, Orientation>;
 
-    fn merge(self, other: Oriented<Graph2, Orientation>) -> Result<Self::Output, (Self, Oriented<Graph2, Orientation>)> {
+    fn merge(
+        self,
+        other: Oriented<Graph2, Orientation>,
+    ) -> Result<Self::Output, (Self, Oriented<Graph2, Orientation>)> {
         let output = self.graph.merge(other.graph);
         match output {
             Ok(x) => Ok(x.orient(self.orientation)),
-            Err((x, y)) => Err((
-                x.orient(self.orientation),
-                y.orient(other.orientation),
-            )),
+            Err((x, y)) => Err((x.orient(self.orientation), y.orient(other.orientation))),
         }
     }
 }
 
 impl<VKmap, Vmap, EKmap, Emap, Graph, Orientation, Graph2>
-Transform<VKmap, Vmap, EKmap, Emap, Oriented<Graph, Orientation>>
-for Oriented<Graph2, Orientation>
-    where
-        Graph2 : Transform<VKmap, Vmap, EKmap, Emap, Graph>{
+    Transform<VKmap, Vmap, EKmap, Emap, Oriented<Graph, Orientation>>
+    for Oriented<Graph2, Orientation>
+where
+    Graph2: Transform<VKmap, Vmap, EKmap, Emap, Graph>,
+{
     fn collect(graph: Oriented<Graph, Orientation>, function: (VKmap, Vmap, EKmap, Emap)) -> Self {
         Graph2::collect(graph.graph, function).orient(graph.orientation)
     }
