@@ -90,6 +90,7 @@ pub trait Edges<'a>
     fn edges(&'a self) -> Self::Output;
 }
 
+///Merges two graphs. Should any conflicts arise, the two graphs are to be returned as an Err.
 pub trait Merge<Rhs = Self>
 where
     Self: Sized,
