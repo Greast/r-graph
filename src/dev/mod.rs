@@ -25,17 +25,21 @@ where
     fn neighbours(&'a self, vertex: &VertexKey) -> Option<Self::IntoIter>;
 }
 
+///Contains types and traits for edges and their orientation.
 pub mod orientation {
     pub trait Orientation {}
 
+    ///Tells the current context, that concerning edge(s) are to be interpreted as directed.
     #[derive(Default, Debug, Eq, PartialEq)]
     pub struct Directed;
     impl Orientation for Directed {}
 
+    ///Tells the current context, that concerning edge(s) are to be interpreted as undirected/bidirected.
     #[derive(Default, Debug, Eq, PartialEq)]
     pub struct Undirected;
     impl Orientation for Undirected {}
 
+    ///Adds the given edge to the given graph, connected to the given nodes. The orientation of this edge changes based on the given orientation type.
     pub trait AddEdge<O: Orientation, VertexKey, Edge> {
         type EdgeKey;
         fn add_edge(
@@ -91,18 +95,19 @@ where
     fn merge(self, _: Rhs) -> Result<Self::Output, (Self, Rhs)>;
 }
 
-pub trait Dot<T, R, R2, G>{
-    type Output : Fn(T) -> R2;
-    fn dot(self, function:G) -> Self::Output;
+pub trait Dot<T, R, R2, G> {
+    type Output: Fn(T) -> R2;
+    fn dot(self, function: G) -> Self::Output;
 }
 
-impl <T, R, R2, G, F> Dot<T, R, R2, G> for F
-    where
-        F : Fn(T) -> R,
-        G : Fn(R) -> R2,{
+impl<T, R, R2, G, F> Dot<T, R, R2, G> for F
+where
+    F: Fn(T) -> R,
+    G: Fn(R) -> R2,
+{
     type Output = impl Fn(T) -> R2;
 
-    fn dot(self, function: G) -> Self::Output  {
+    fn dot(self, function: G) -> Self::Output {
         move |x| function(self(x))
     }
 }

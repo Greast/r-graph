@@ -1,7 +1,7 @@
+use crate::dev::Dot;
 use std::convert::identity;
 use std::marker::PhantomData;
 use std::ops::{Deref, DerefMut};
-use crate::dev::Dot;
 
 struct Mapper<VKmap, Vmap, EKmap, Emap, VK, V, EK, E> {
     vk_map: VKmap,
@@ -35,32 +35,32 @@ pub struct Transformer<VKmap, Vmap, EKmap, Emap, VK, V, EK, E, Graph> {
     pub graph: Graph,
 }
 
-impl<VKmap, Vmap, EKmap, Emap, VK, V, EK, E, Graph> Deref for Transformer<VKmap, Vmap, EKmap, Emap, VK, V, EK, E, Graph>{
+impl<VKmap, Vmap, EKmap, Emap, VK, V, EK, E, Graph> Deref
+    for Transformer<VKmap, Vmap, EKmap, Emap, VK, V, EK, E, Graph>
+{
     type Target = Graph;
-
     fn deref(&self) -> &Self::Target {
         &self.graph
     }
 }
 
-impl<VKmap, Vmap, EKmap, Emap, VK, V, EK, E, Graph> DerefMut for Transformer<VKmap, Vmap, EKmap, Emap, VK, V, EK, E, Graph>{
-
+impl<VKmap, Vmap, EKmap, Emap, VK, V, EK, E, Graph> DerefMut
+    for Transformer<VKmap, Vmap, EKmap, Emap, VK, V, EK, E, Graph>
+{
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.graph
     }
 }
 
-
-
 impl<VKmap, Vmap, EKmap, Emap, VK, V, EK, E, Graph>
-    Transformer<VKmap, Vmap, EKmap, Emap, VK, V, EK, E, Graph> {
+    Transformer<VKmap, Vmap, EKmap, Emap, VK, V, EK, E, Graph>
+{
     pub fn map_vertex_key<G, T, R>(
         self,
         function: G,
-    ) -> Transformer<<VKmap as Dot<VK, T, R, G>>::Output, Vmap, EKmap , Emap, R, V, EK, E, Graph>
-        where
-            VKmap : Dot<VK, T, R, G>
-
+    ) -> Transformer<<VKmap as Dot<VK, T, R, G>>::Output, Vmap, EKmap, Emap, R, V, EK, E, Graph>
+    where
+        VKmap: Dot<VK, T, R, G>,
     {
         Transformer {
             mapper: Mapper {
@@ -77,8 +77,8 @@ impl<VKmap, Vmap, EKmap, Emap, VK, V, EK, E, Graph>
         self,
         function: G,
     ) -> Transformer<VKmap, <Vmap as Dot<V, T, R, G>>::Output, EKmap, Emap, VK, R, EK, E, Graph>
-        where
-            Vmap: Dot<V, T, R, G>,
+    where
+        Vmap: Dot<V, T, R, G>,
     {
         Transformer {
             mapper: Mapper {
@@ -96,9 +96,8 @@ impl<VKmap, Vmap, EKmap, Emap, VK, V, EK, E, Graph>
         self,
         function: G,
     ) -> Transformer<VKmap, Vmap, <EKmap as Dot<EK, T, R, G>>::Output, Emap, VK, V, R, E, Graph>
-        where
-            EKmap : Dot<EK, T, R, G>
-
+    where
+        EKmap: Dot<EK, T, R, G>,
     {
         Transformer {
             mapper: Mapper {
@@ -112,14 +111,12 @@ impl<VKmap, Vmap, EKmap, Emap, VK, V, EK, E, Graph>
         }
     }
 
-
-
     pub fn map_edge<G, T, R>(
         self,
         function: G,
     ) -> Transformer<VKmap, Vmap, EKmap, <Emap as Dot<E, T, R, G>>::Output, VK, V, EK, R, Graph>
     where
-        Emap : Dot<E, T, R, G>,
+        Emap: Dot<E, T, R, G>,
     {
         Transformer {
             mapper: Mapper {
@@ -139,7 +136,7 @@ where
     Self: Sized,
 {
     fn collect(graph: Graph, _: (VKmap, Vmap, EKmap, Emap)) -> Self;
-    fn transform< VK, V, EK, E>(
+    fn transform<VK, V, EK, E>(
         self,
     ) -> Transformer<fn(VK) -> VK, fn(V) -> V, fn(EK) -> EK, fn(E) -> E, VK, V, EK, E, Self> {
         Transformer {
@@ -148,7 +145,6 @@ where
         }
     }
 }
-
 
 impl<VKmap, Vmap, EKmap, Emap, VK, V, EK, E, Graph>
     Transformer<VKmap, Vmap, EKmap, Emap, VK, V, EK, E, Graph>
