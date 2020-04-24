@@ -57,9 +57,9 @@ pub trait AddVertex<Input> {
     fn add_vertex(&mut self, vertex: Input) -> Result<Self::Key, Input>;
 }
 
-pub trait GetVertex<Key> {
+pub trait GetVertex<VertexKey> {
     type Output;
-    fn get_vertex(&self, key: &Key) -> Option<&Self::Output>;
+    fn get_vertex(&self, key: &VertexKey) -> Option<&Self::Output>;
 }
 
 pub trait GetEdge<Key> {
