@@ -57,6 +57,7 @@ pub trait AddVertex<Input> {
     fn add_vertex(&mut self, vertex: Input) -> Result<Self::Key, Input>;
 }
 
+///Gets a reference to the data associated with he given vertex key.
 pub trait GetVertex<VertexKey> {
     type Output;
     fn get_vertex(&self, key: &VertexKey) -> Option<&Self::Output>;
