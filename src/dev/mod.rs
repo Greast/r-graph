@@ -82,7 +82,7 @@ pub trait Vertices<'a>
     fn vertices(&'a self) -> Self::Output;
 }
 
-
+///Returns and iterator containing the keys of all the edges inside the given graph.
 pub trait Edges<'a>
 {
     type Item : 'a;
