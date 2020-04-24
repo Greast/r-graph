@@ -17,7 +17,7 @@ jobs:
       run: cargo fmt
 
     - name: Fix
-      run: cargo fix --allow-dirty
+      run: cargo +nightly fix --allow-dirty
 
     - name: Build
       run: cargo +nightly build --verbose
