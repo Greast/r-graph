@@ -82,11 +82,11 @@ pub trait Vertices<'a>
     fn vertices(&'a self) -> Self::Output;
 }
 
-pub trait Edges<'a, Key>
-where
-    Key: 'a,
+
+pub trait Edges<'a>
 {
-    type Output: IntoIterator<Item = &'a Key>;
+    type Item : 'a;
+    type Output: IntoIterator<Item = &'a Self::Item>;
     fn edges(&'a self) -> Self::Output;
 }
 

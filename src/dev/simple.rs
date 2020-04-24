@@ -254,13 +254,14 @@ where
     }
 }
 
-impl<'a, VertexKey, Vertex, EdgeKey, Edge> Edges<'a, EdgeKey>
+impl<'a, VertexKey, Vertex, EdgeKey, Edge> Edges<'a>
     for Simple<VertexKey, Vertex, EdgeKey, Edge>
 where
     VertexKey: Eq + Hash + 'a,
     EdgeKey: Eq + Hash + 'a,
     Edge: 'a,
 {
+    type Item = EdgeKey;
     type Output = Keys<'a, EdgeKey, Node<Edge, VertexKey, VertexKey>>;
 
     fn edges(&'a self) -> Self::Output {

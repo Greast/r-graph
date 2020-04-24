@@ -156,12 +156,12 @@ where
     }
 }
 
-impl<'a, Key, Graph, EdgeKey> Edges<'a, Key> for Edge<Graph, EdgeKey>
+impl<'a, Graph, EdgeKey> Edges<'a> for Edge<Graph, EdgeKey>
 where
-    Key: 'a,
-    Graph: Edges<'a, Key>,
+    Graph: Edges<'a>,
 {
-    type Output = <Graph as Edges<'a, Key>>::Output;
+    type Item = <Graph as Edges<'a>>::Item;
+    type Output = <Graph as Edges<'a>>::Output;
 
     fn edges(&'a self) -> Self::Output {
         self.graph.edges()
