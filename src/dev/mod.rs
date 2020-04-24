@@ -68,9 +68,9 @@ pub trait GetEdge<EdgeKey> {
     fn get_edge(&self, key: &EdgeKey) -> Option<&Self::Output>;
 }
 
-pub trait GetEdgeTo<'a, Key> {
+pub trait GetEdgeTo<'a, EdgeKey> {
     type Output;
-    fn get_edge_to(&'a self, key: &Key) -> Option<Self::Output>;
+    fn get_edge_to(&'a self, key: &EdgeKey) -> Option<Self::Output>;
 }
 
 pub trait Vertices<'a, Key>
