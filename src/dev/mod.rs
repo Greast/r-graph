@@ -99,6 +99,7 @@ where
     fn merge(self, _: Rhs) -> Result<Self::Output, (Self, Rhs)>;
 }
 
+///Construct the product of the two given functions. Such that f.dot(g) = f(g(x)).
 pub trait Dot<T, R, R2, G> {
     type Output: Fn(T) -> R2;
     fn dot(self, function: G) -> Self::Output;
