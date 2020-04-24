@@ -68,6 +68,7 @@ pub trait GetEdge<EdgeKey> {
     fn get_edge(&self, key: &EdgeKey) -> Option<&Self::Output>;
 }
 
+///Gets the endpoint of some given edge key.
 pub trait GetEdgeTo<'a, EdgeKey> {
     type Output;
     fn get_edge_to(&'a self, key: &EdgeKey) -> Option<Self::Output>;
