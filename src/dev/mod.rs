@@ -74,6 +74,7 @@ pub trait GetEdgeTo<'a, EdgeKey> {
     fn get_edge_to(&'a self, key: &EdgeKey) -> Option<Self::Output>;
 }
 
+///Returns and iterator containing the keys of all the vertices inside the given graph.
 pub trait Vertices<'a>
 {
     type Item : 'a;
