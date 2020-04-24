@@ -20,7 +20,7 @@ where
 impl<'a, Vertex, Graph> Cycle<'a, Directed, Vertex> for Graph
 where
     Vertex: 'a + Eq + Hash,
-    Self: Vertices<'a, Vertex> + Neighbours<'a, Directed, Vertex>,
+    Self: Vertices<'a, Item = Vertex> + Neighbours<'a, Directed, Vertex>,
 {
     fn cycle(&'a self) -> bool {
         let mut queue = VecDeque::new();
@@ -43,7 +43,7 @@ where
 impl<'a, Vertex, Graph> Cycle<'a, Undirected, Vertex> for Graph
 where
     Vertex: 'a + Eq + Hash + Debug,
-    Self: Vertices<'a, Vertex> + Neighbours<'a, Undirected, Vertex>,
+    Self: Vertices<'a, Item = Vertex> + Neighbours<'a, Undirected, Vertex>,
     <Self as Neighbours<'a, Undirected, Vertex>>::Edge: Hash + Eq + Debug,
 {
     fn cycle(&'a self) -> bool {

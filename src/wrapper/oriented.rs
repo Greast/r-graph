@@ -148,12 +148,12 @@ where
     }
 }
 
-impl<'a, Key, Graph, Orientation> Vertices<'a, Key> for Oriented<Graph, Orientation>
-where
-    Key: 'a,
-    Graph: Vertices<'a, Key>,
+impl<'a, Graph, Orientation> Vertices<'a> for Oriented<Graph, Orientation>
+    where
+    Graph: Vertices<'a>,
 {
-    type Output = <Graph as Vertices<'a, Key>>::Output;
+    type Item = <Graph as Vertices<'a>>::Item;
+    type Output = <Graph as Vertices<'a>>::Output;
 
     fn vertices(&'a self) -> Self::Output {
         self.graph.vertices()
