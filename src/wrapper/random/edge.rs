@@ -4,7 +4,7 @@ use crate::dev::{
     orientation, AddVertex, Dot, Edges, GetEdge, GetEdgeTo, GetVertex, Merge, Neighbours,
     RemoveEdge, RemoveVertex, Vertices,
 };
-use core::iter;
+
 use rand::distributions::{Distribution, Standard};
 use rand::random;
 use std::marker::PhantomData;

@@ -3,7 +3,7 @@ use crate::dev::orientation::{AddEdge, Directed, Undirected};
 
 use crate::dev::transform::Transform;
 use crate::dev::{
-    AddVertex, Edges, GetEdge, GetEdgeTo, GetVertex, Merge, Neighbours, RemoveEdge, RemoveVertex,
+    AddVertex, Edges, GetEdge, GetEdgeTo, GetVertex, Neighbours, RemoveEdge, RemoveVertex,
     Vertices,
 };
 use std::collections::hash_map::Keys;
