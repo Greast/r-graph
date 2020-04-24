@@ -51,6 +51,7 @@ pub mod orientation {
     }
 }
 
+///Adds the specified input to the given graph.
 pub trait AddVertex<Input> {
     type Key;
     fn add_vertex(&mut self, vertex: Input) -> Result<Self::Key, Input>;
