@@ -62,7 +62,7 @@ pub trait GetVertex<VertexKey> {
     type Output;
     fn get_vertex(&self, key: &VertexKey) -> Option<&Self::Output>;
 }
-
+///Gets a reference to the data associated with he given edge key.
 pub trait GetEdge<EdgeKey> {
     type Output;
     fn get_edge(&self, key: &EdgeKey) -> Option<&Self::Output>;
