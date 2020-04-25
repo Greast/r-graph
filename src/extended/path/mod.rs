@@ -1,5 +1,3 @@
-
-
 pub mod a_star;
 pub mod breadth;
 pub mod dijkstra;
