@@ -75,17 +75,15 @@ pub trait GetEdgeTo<'a, EdgeKey> {
 }
 
 ///Returns and iterator containing the keys of all the vertices inside the given graph.
-pub trait Vertices<'a>
-{
-    type Item : 'a;
+pub trait Vertices<'a> {
+    type Item: 'a;
     type Output: IntoIterator<Item = &'a Self::Item>;
     fn vertices(&'a self) -> Self::Output;
 }
 
 ///Returns and iterator containing the keys of all the edges inside the given graph.
-pub trait Edges<'a>
-{
-    type Item : 'a;
+pub trait Edges<'a> {
+    type Item: 'a;
     type Output: IntoIterator<Item = &'a Self::Item>;
     fn edges(&'a self) -> Self::Output;
 }

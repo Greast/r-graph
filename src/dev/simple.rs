@@ -3,8 +3,7 @@ use crate::dev::orientation::{AddEdge, Directed, Undirected};
 
 use crate::dev::transform::Transform;
 use crate::dev::{
-    AddVertex, Edges, GetEdge, GetEdgeTo, GetVertex, Neighbours, RemoveEdge, RemoveVertex,
-    Vertices,
+    AddVertex, Edges, GetEdge, GetEdgeTo, GetVertex, Neighbours, RemoveEdge, RemoveVertex, Vertices,
 };
 use std::collections::hash_map::Keys;
 use std::collections::{HashMap, HashSet};
@@ -239,8 +238,7 @@ where
     }
 }
 
-impl<'a, VertexKey, Vertex, EdgeKey, Edge> Vertices<'a>
-    for Simple<VertexKey, Vertex, EdgeKey, Edge>
+impl<'a, VertexKey, Vertex, EdgeKey, Edge> Vertices<'a> for Simple<VertexKey, Vertex, EdgeKey, Edge>
 where
     VertexKey: Eq + Hash + 'a,
     Vertex: 'a,
@@ -254,8 +252,7 @@ where
     }
 }
 
-impl<'a, VertexKey, Vertex, EdgeKey, Edge> Edges<'a>
-    for Simple<VertexKey, Vertex, EdgeKey, Edge>
+impl<'a, VertexKey, Vertex, EdgeKey, Edge> Edges<'a> for Simple<VertexKey, Vertex, EdgeKey, Edge>
 where
     VertexKey: Eq + Hash + 'a,
     EdgeKey: Eq + Hash + 'a,

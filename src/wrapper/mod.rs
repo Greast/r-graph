@@ -1,3 +1,4 @@
+pub mod logger;
 pub mod oriented;
 pub mod path;
 pub mod random;
