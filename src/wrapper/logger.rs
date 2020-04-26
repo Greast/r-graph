@@ -1,15 +1,26 @@
 use crate::dev::orientation::AddEdge;
-use crate::dev::{
-    orientation, AddVertex, Edges, GetEdge, GetEdgeTo, GetVertex, Neighbours, RemoveEdge,
-    RemoveVertex, Vertices,
-};
+use crate::dev::{orientation, AddVertex, Edges, GetEdge, GetEdgeTo, GetVertex, Neighbours, RemoveEdge, RemoveVertex, Vertices, Merge};
 use std::marker::PhantomData;
 use std::ops::{Deref, DerefMut};
 use std::sync::mpsc::Sender;
 use std::sync::Mutex;
 
+pub trait Log<Orientation, VertexKey, Vertex, EdgeKey, Edge>
+    where Self: Sized{
+    fn log(self, sender:Sender<Entries<Orientation, VertexKey, Vertex, EdgeKey, Edge>>) -> Logger<Self, Orientation, VertexKey, Vertex, EdgeKey, Edge>;
+}
+
+impl<Graph, Orientation, VertexKey, Vertex, EdgeKey, Edge> Log<Orientation, VertexKey, Vertex, EdgeKey, Edge> for Graph{
+    fn log(self, sender: Sender<Entries<Orientation, VertexKey, Vertex, EdgeKey, Edge>>) -> Logger<Self, Orientation, VertexKey, Vertex, EdgeKey, Edge> {
+        Logger{
+            graph : self,
+            sender
+        }
+    }
+}
+
 #[derive(Clone, Debug, Ord, PartialOrd, Eq, PartialEq)]
-enum Entries<Orientation, VertexKey, Vertex, EdgeKey, Edge> {
+pub enum Entries<Orientation, VertexKey, Vertex, EdgeKey, Edge> {
     RemoveVertex(VertexKey),
     RemoveEdge(EdgeKey),
     Neighbours(Orientation, VertexKey),
@@ -22,7 +33,7 @@ enum Entries<Orientation, VertexKey, Vertex, EdgeKey, Edge> {
     Edges(),
 }
 
-struct Logger<Graph, Orientation, VertexKey, Vertex, EdgeKey, Edge> {
+pub struct Logger<Graph, Orientation, VertexKey, Vertex, EdgeKey, Edge> {
     graph: Graph,
     sender: Sender<Entries<Orientation, VertexKey, Vertex, EdgeKey, Edge>>,
 }
@@ -180,5 +191,19 @@ where
     fn edges(&'a self) -> Self::Output {
         self.sender.send(Entries::Edges());
         self.graph.edges()
+    }
+}
+
+impl<Graph2, Graph, Orientation, VertexKey, Vertex, EdgeKey, Edge> Merge<Logger<Graph2, Orientation, VertexKey, Vertex, EdgeKey, Edge>> for Logger<Graph, Orientation, VertexKey, Vertex, EdgeKey, Edge>
+    where
+        Graph : Merge<Graph2>,{
+    type Output = Logger<<Graph as Merge<Graph2>>::Output, Orientation, VertexKey, Vertex, EdgeKey, Edge>;
+
+    fn merge(self, other: Logger<Graph2, Orientation, VertexKey, Vertex, EdgeKey, Edge>) -> Result<Self::Output, (Self, Logger<Graph2, Orientation, VertexKey, Vertex, EdgeKey, Edge>)> {
+        let output = self.graph.merge(other.graph);
+        match output {
+            Ok(x) => Ok(x.log(self.sender)),
+            Err((x, y)) => Err((x.log(self.sender), y.log(other.sender))),
+        }
     }
 }
