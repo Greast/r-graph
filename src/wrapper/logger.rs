@@ -4,6 +4,7 @@ use std::marker::PhantomData;
 use std::ops::{Deref, DerefMut};
 use std::sync::mpsc::Sender;
 use std::sync::Mutex;
+use crate::dev::transform::Transform;
 
 pub trait Log<Orientation, VertexKey, Vertex, EdgeKey, Edge>
     where Self: Sized{
@@ -205,5 +206,16 @@ impl<Graph2, Graph, Orientation, VertexKey, Vertex, EdgeKey, Edge> Merge<Logger<
             Ok(x) => Ok(x.log(self.sender)),
             Err((x, y)) => Err((x.log(self.sender), y.log(other.sender))),
         }
+    }
+}
+
+impl<VKmap, Vmap, EKmap, Emap, Graph2, Orientation, VertexKey, Vertex, EdgeKey, Edge, Graph>
+Transform<VKmap, Vmap, EKmap, Emap, Logger<Graph, Orientation, VertexKey, Vertex, EdgeKey, Edge>>
+for Logger<Graph2, Orientation, VertexKey, Vertex, EdgeKey, Edge>
+    where
+        Graph2: Transform<VKmap, Vmap, EKmap, Emap, Graph>,
+{
+    fn collect(graph: Logger<Graph, Orientation, VertexKey, Vertex, EdgeKey, Edge>,  maps: (VKmap, Vmap, EKmap, Emap)) -> Self {
+        Graph2::collect(graph.graph, maps).log(graph.sender)
     }
 }
