@@ -1,5 +1,4 @@
 pub mod node;
-pub mod relative;
 pub mod simple;
 pub mod transform;
 ///Remove a vertex associated with the given key, along with all incoming and outgoing edges, from the graph.
@@ -51,42 +50,44 @@ pub mod orientation {
     }
 }
 
+///Adds the specified input to the given graph.
 pub trait AddVertex<Input> {
     type Key;
     fn add_vertex(&mut self, vertex: Input) -> Result<Self::Key, Input>;
 }
 
-pub trait GetVertex<Key> {
+///Gets a reference to the data associated with he given vertex key.
+pub trait GetVertex<VertexKey> {
     type Output;
-    fn get_vertex(&self, key: &Key) -> Option<&Self::Output>;
+    fn get_vertex(&self, key: &VertexKey) -> Option<&Self::Output>;
+}
+///Gets a reference to the data associated with he given edge key.
+pub trait GetEdge<EdgeKey> {
+    type Output;
+    fn get_edge(&self, key: &EdgeKey) -> Option<&Self::Output>;
 }
 
-pub trait GetEdge<Key> {
+///Gets the endpoint of some given edge key.
+pub trait GetEdgeTo<'a, EdgeKey> {
     type Output;
-    fn get_edge(&self, key: &Key) -> Option<&Self::Output>;
+    fn get_edge_to(&'a self, key: &EdgeKey) -> Option<Self::Output>;
 }
 
-pub trait GetEdgeTo<'a, Key> {
-    type Output;
-    fn get_edge_to(&'a self, key: &Key) -> Option<Self::Output>;
-}
-
-pub trait Vertices<'a, Key>
-where
-    Key: 'a,
-{
-    type Output: IntoIterator<Item = &'a Key>;
+///Returns and iterator containing the keys of all the vertices inside the given graph.
+pub trait Vertices<'a> {
+    type Item: 'a;
+    type Output: IntoIterator<Item = &'a Self::Item>;
     fn vertices(&'a self) -> Self::Output;
 }
 
-pub trait Edges<'a, Key>
-where
-    Key: 'a,
-{
-    type Output: IntoIterator<Item = &'a Key>;
+///Returns and iterator containing the keys of all the edges inside the given graph.
+pub trait Edges<'a> {
+    type Item: 'a;
+    type Output: IntoIterator<Item = &'a Self::Item>;
     fn edges(&'a self) -> Self::Output;
 }
 
+///Merges two graphs. Should any conflicts arise, the two graphs are to be returned as an Err.
 pub trait Merge<Rhs = Self>
 where
     Self: Sized,
@@ -95,6 +96,7 @@ where
     fn merge(self, _: Rhs) -> Result<Self::Output, (Self, Rhs)>;
 }
 
+///Construct the product of the two given functions. Such that f.dot(g) = f(g(x)).
 pub trait Dot<T, R, R2, G> {
     type Output: Fn(T) -> R2;
     fn dot(self, function: G) -> Self::Output;

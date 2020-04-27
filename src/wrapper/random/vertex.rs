@@ -143,24 +143,24 @@ where
     }
 }
 
-impl<'a, Key, Graph, VertexKey> Vertices<'a, Key> for Vertex<Graph, VertexKey>
+impl<'a, Graph, VertexKey> Vertices<'a> for Vertex<Graph, VertexKey>
 where
-    Key: 'a,
-    Graph: Vertices<'a, Key>,
+    Graph: Vertices<'a>,
 {
-    type Output = <Graph as Vertices<'a, Key>>::Output;
+    type Item = <Graph as Vertices<'a>>::Item;
+    type Output = <Graph as Vertices<'a>>::Output;
 
     fn vertices(&'a self) -> Self::Output {
         self.graph.vertices()
     }
 }
 
-impl<'a, Key, Graph, VertexKey> Edges<'a, Key> for Vertex<Graph, VertexKey>
+impl<'a, Graph, VertexKey> Edges<'a> for Vertex<Graph, VertexKey>
 where
-    Key: 'a,
-    Graph: Edges<'a, Key>,
+    Graph: Edges<'a>,
 {
-    type Output = <Graph as Edges<'a, Key>>::Output;
+    type Item = <Graph as Edges<'a>>::Item;
+    type Output = <Graph as Edges<'a>>::Output;
 
     fn edges(&'a self) -> Self::Output {
         self.graph.edges()

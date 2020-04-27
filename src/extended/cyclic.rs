@@ -20,7 +20,7 @@ where
 impl<'a, Vertex, Graph> Cycle<'a, Directed, Vertex> for Graph
 where
     Vertex: 'a + Eq + Hash,
-    Self: Vertices<'a, Vertex> + Neighbours<'a, Directed, Vertex>,
+    Self: Vertices<'a, Item = Vertex> + Neighbours<'a, Directed, Vertex>,
 {
     fn cycle(&'a self) -> bool {
         let mut queue = VecDeque::new();
@@ -43,7 +43,7 @@ where
 impl<'a, Vertex, Graph> Cycle<'a, Undirected, Vertex> for Graph
 where
     Vertex: 'a + Eq + Hash + Debug,
-    Self: Vertices<'a, Vertex> + Neighbours<'a, Undirected, Vertex>,
+    Self: Vertices<'a, Item = Vertex> + Neighbours<'a, Undirected, Vertex>,
     <Self as Neighbours<'a, Undirected, Vertex>>::Edge: Hash + Eq + Debug,
 {
     fn cycle(&'a self) -> bool {
@@ -55,12 +55,14 @@ where
             queue.push_back((None, cluster));
 
             while let Some((mut from, vertex)) = queue.pop_front() {
-                for (edge, vert) in self.neighbours(vertex).into_iter().flatten() {
-                    if from.as_ref().map(|x| x == &edge).is_some() {
-                        from.take();
+
+                vertices.remove(&vertex);
+                for (edge, vert) in self.neighbours(vertex).into_iter().flatten(){
+
+                    if let Some(true) = from.as_ref().map(|x| x == &edge) {
                         continue;
                     }
-                    if !vertices.remove(vert) {
+                    if !vertices.contains(vert) {
                         return true;
                     }
                     queue.push_back((Some(edge), vert));
@@ -103,6 +105,8 @@ mod tests {
         let b = graph.add_vertex((1, ())).unwrap();
 
         graph.add_edge(&a, &b, (0, ())).unwrap();
+
+        dbg!(&graph);
         assert!(!graph.cycle())
     }
 }
