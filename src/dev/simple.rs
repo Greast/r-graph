@@ -66,6 +66,7 @@ where
         }
 
         self.vertices.get_mut(&from).unwrap().to.insert(key.clone());
+        self.vertices.get_mut(&to).unwrap().from.insert(key.clone());
 
         self.edges.insert(
             key.clone(),
@@ -94,9 +95,10 @@ where
         (key, data): (Ek, E),
     ) -> Result<Self::EdgeKey, (Ek, E)> {
         let output =
-            AddEdge::<Directed, Vk, (Ek, E)>::add_edge(self, from, to, (key.clone(), data));
-        self.vertices.get_mut(&to).unwrap().from.insert(key);
-        output
+            AddEdge::<Directed, Vk, (Ek, E)>::add_edge(self, from, to, (key.clone(), data))?;
+        self.vertices.get_mut(&from).unwrap().from.insert(key.clone());
+        self.vertices.get_mut(&to).unwrap().to.insert(key.clone());
+        Ok(output)
     }
 }
 
