@@ -1,5 +1,4 @@
 pub mod node;
-pub mod relative;
 pub mod simple;
 pub mod transform;
 ///Remove a vertex associated with the given key, along with all incoming and outgoing edges, from the graph.
