@@ -57,7 +57,6 @@ where
             while let Some((mut from, vertex)) = queue.pop_front() {
                 for (edge, vert) in self.neighbours(vertex).into_iter().flatten() {
                     if from.as_ref().map(|x| x == &edge).is_some() {
-                        from.take();
                         continue;
                     }
                     if !vertices.remove(vert) {
