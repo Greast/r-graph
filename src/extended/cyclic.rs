@@ -55,11 +55,14 @@ where
             queue.push_back((None, cluster));
 
             while let Some((mut from, vertex)) = queue.pop_front() {
-                for (edge, vert) in self.neighbours(vertex).into_iter().flatten() {
-                    if from.as_ref().map(|x| x == &edge).is_some() {
+
+                vertices.remove(&vertex);
+                for (edge, vert) in self.neighbours(vertex).into_iter().flatten(){
+
+                    if let Some(true) = from.as_ref().map(|x| x == &edge) {
                         continue;
                     }
-                    if !vertices.remove(vert) {
+                    if !vertices.contains(vert) {
                         return true;
                     }
                     queue.push_back((Some(edge), vert));
@@ -102,6 +105,8 @@ mod tests {
         let b = graph.add_vertex((1, ())).unwrap();
 
         graph.add_edge(&a, &b, (0, ())).unwrap();
+
+        dbg!(&graph);
         assert!(!graph.cycle())
     }
 }
