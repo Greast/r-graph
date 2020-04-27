@@ -96,7 +96,11 @@ where
     ) -> Result<Self::EdgeKey, (Ek, E)> {
         let output =
             AddEdge::<Directed, Vk, (Ek, E)>::add_edge(self, from, to, (key.clone(), data))?;
-        self.vertices.get_mut(&from).unwrap().from.insert(key.clone());
+        self.vertices
+            .get_mut(&from)
+            .unwrap()
+            .from
+            .insert(key.clone());
         self.vertices.get_mut(&to).unwrap().to.insert(key.clone());
         Ok(output)
     }
@@ -222,19 +226,13 @@ where
     type IntoIter = Vec<(Self::Edge, &'a VertexKey)>;
 
     fn neighbours(&'a self, vertex: &VertexKey) -> Option<Self::IntoIter> {
-        let to = self
-            .vertices
-            .get(vertex)?
-            .to
-            .iter()
-            .flat_map(|key| Some((key, &self.edges.get(key)?.to)));
+        let to = self.vertices.get(vertex)?.to.iter().flat_map(|key| {
+            Some((key, self.edges.get(key)?.other(vertex)))
+        });
 
-        let from = self
-            .vertices
-            .get(vertex)?
-            .from
-            .iter()
-            .flat_map(|key| Some((key, &self.edges.get(key)?.from)));
+        let from = self.vertices.get(vertex)?.from.iter().flat_map(|key| {
+            Some((key, self.edges.get(key)?.other(vertex)))
+        });
 
         to.chain(from).collect::<Vec<_>>().into()
     }
