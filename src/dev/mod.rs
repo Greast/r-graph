@@ -1,5 +1,4 @@
 pub mod node;
-pub mod relative;
 pub mod simple;
 pub mod transform;
 ///Remove a vertex associated with the given key, along with all incoming and outgoing edges, from the graph.
@@ -27,15 +26,15 @@ where
 
 ///Contains types and traits for edges and their orientation.
 pub mod orientation {
-    pub trait Orientation {}
+    pub trait Orientation{}
 
     ///Tells the current context, that concerning edge(s) are to be interpreted as directed.
-    #[derive(Default, Debug, Eq, PartialEq)]
+    #[derive(Default, Clone, Debug, Eq, PartialEq)]
     pub struct Directed;
     impl Orientation for Directed {}
 
     ///Tells the current context, that concerning edge(s) are to be interpreted as undirected/bidirected.
-    #[derive(Default, Debug, Eq, PartialEq)]
+    #[derive(Default, Clone, Debug, Eq, PartialEq)]
     pub struct Undirected;
     impl Orientation for Undirected {}
 
@@ -75,17 +74,15 @@ pub trait GetEdgeTo<'a, EdgeKey> {
 }
 
 ///Returns and iterator containing the keys of all the vertices inside the given graph.
-pub trait Vertices<'a>
-{
-    type Item : 'a;
+pub trait Vertices<'a> {
+    type Item: 'a;
     type Output: IntoIterator<Item = &'a Self::Item>;
     fn vertices(&'a self) -> Self::Output;
 }
 
 ///Returns and iterator containing the keys of all the edges inside the given graph.
-pub trait Edges<'a>
-{
-    type Item : 'a;
+pub trait Edges<'a> {
+    type Item: 'a;
     type Output: IntoIterator<Item = &'a Self::Item>;
     fn edges(&'a self) -> Self::Output;
 }

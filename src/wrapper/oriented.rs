@@ -149,7 +149,7 @@ where
 }
 
 impl<'a, Graph, Orientation> Vertices<'a> for Oriented<Graph, Orientation>
-    where
+where
     Graph: Vertices<'a>,
 {
     type Item = <Graph as Vertices<'a>>::Item;

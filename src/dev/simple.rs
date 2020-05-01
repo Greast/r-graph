@@ -3,8 +3,7 @@ use crate::dev::orientation::{AddEdge, Directed, Undirected};
 
 use crate::dev::transform::Transform;
 use crate::dev::{
-    AddVertex, Edges, GetEdge, GetEdgeTo, GetVertex, Neighbours, RemoveEdge, RemoveVertex,
-    Vertices,
+    AddVertex, Edges, GetEdge, GetEdgeTo, GetVertex, Neighbours, RemoveEdge, RemoveVertex, Vertices,
 };
 use std::collections::hash_map::Keys;
 use std::collections::{HashMap, HashSet};
@@ -67,6 +66,7 @@ where
         }
 
         self.vertices.get_mut(&from).unwrap().to.insert(key.clone());
+        self.vertices.get_mut(&to).unwrap().from.insert(key.clone());
 
         self.edges.insert(
             key.clone(),
@@ -95,9 +95,14 @@ where
         (key, data): (Ek, E),
     ) -> Result<Self::EdgeKey, (Ek, E)> {
         let output =
-            AddEdge::<Directed, Vk, (Ek, E)>::add_edge(self, from, to, (key.clone(), data));
-        self.vertices.get_mut(&to).unwrap().from.insert(key);
-        output
+            AddEdge::<Directed, Vk, (Ek, E)>::add_edge(self, from, to, (key.clone(), data))?;
+        self.vertices
+            .get_mut(&from)
+            .unwrap()
+            .from
+            .insert(key.clone());
+        self.vertices.get_mut(&to).unwrap().to.insert(key.clone());
+        Ok(output)
     }
 }
 
@@ -221,26 +226,19 @@ where
     type IntoIter = Vec<(Self::Edge, &'a VertexKey)>;
 
     fn neighbours(&'a self, vertex: &VertexKey) -> Option<Self::IntoIter> {
-        let to = self
-            .vertices
-            .get(vertex)?
-            .to
-            .iter()
-            .flat_map(|key| Some((key, &self.edges.get(key)?.to)));
+        let to = self.vertices.get(vertex)?.to.iter().flat_map(|key| {
+            Some((key, self.edges.get(key)?.other(vertex)))
+        });
 
-        let from = self
-            .vertices
-            .get(vertex)?
-            .from
-            .iter()
-            .flat_map(|key| Some((key, &self.edges.get(key)?.from)));
+        let from = self.vertices.get(vertex)?.from.iter().flat_map(|key| {
+            Some((key, self.edges.get(key)?.other(vertex)))
+        });
 
         to.chain(from).collect::<Vec<_>>().into()
     }
 }
 
-impl<'a, VertexKey, Vertex, EdgeKey, Edge> Vertices<'a>
-    for Simple<VertexKey, Vertex, EdgeKey, Edge>
+impl<'a, VertexKey, Vertex, EdgeKey, Edge> Vertices<'a> for Simple<VertexKey, Vertex, EdgeKey, Edge>
 where
     VertexKey: Eq + Hash + 'a,
     Vertex: 'a,
@@ -254,8 +252,7 @@ where
     }
 }
 
-impl<'a, VertexKey, Vertex, EdgeKey, Edge> Edges<'a>
-    for Simple<VertexKey, Vertex, EdgeKey, Edge>
+impl<'a, VertexKey, Vertex, EdgeKey, Edge> Edges<'a> for Simple<VertexKey, Vertex, EdgeKey, Edge>
 where
     VertexKey: Eq + Hash + 'a,
     EdgeKey: Eq + Hash + 'a,
