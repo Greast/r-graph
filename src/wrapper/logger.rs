@@ -4,6 +4,7 @@ use std::marker::PhantomData;
 use std::ops::{Deref, DerefMut};
 use std::sync::mpsc::Sender;
 use crate::dev::transform::Transform;
+use std::time::Instant;
 
 pub trait Log<VertexKey, Vertex, EdgeKey, Edge>
 where
@@ -11,7 +12,7 @@ where
 {
     fn log(
         self,
-        sender: Sender<Entries<VertexKey, Vertex, EdgeKey, Edge>>,
+        sender: Sender<(Instant, Entries<VertexKey, Vertex, EdgeKey, Edge>)>,
     ) -> Logger<Self, VertexKey, Vertex, EdgeKey, Edge>;
 }
 
@@ -20,7 +21,7 @@ impl<Graph, VertexKey, Vertex, EdgeKey, Edge>
 {
     fn log(
         self,
-        sender: Sender<Entries<VertexKey, Vertex, EdgeKey, Edge>>,
+        sender: Sender<(Instant, Entries<VertexKey, Vertex, EdgeKey, Edge>)>,
     ) -> Logger<Self, VertexKey, Vertex, EdgeKey, Edge> {
         Logger {
             graph: self,
@@ -44,7 +45,13 @@ pub enum Entries<VertexKey, Vertex, EdgeKey, Edge> {
 
 pub struct Logger<Graph, VertexKey, Vertex, EdgeKey, Edge> {
     graph: Graph,
-    sender: Sender<Entries<VertexKey, Vertex, EdgeKey, Edge>>,
+    sender: Sender<(Instant, Entries<VertexKey, Vertex, EdgeKey, Edge>)>,
+}
+
+impl<Graph, VertexKey, Vertex, EdgeKey, Edge> Logger<Graph, VertexKey, Vertex, EdgeKey, Edge>{
+    pub fn send(&self, entry:Entries<VertexKey, Vertex, EdgeKey, Edge>){
+        self.sender.send((Instant::now(), entry));
+    }
 }
 
 impl<Graph, VertexKey, Vertex, EdgeKey, Edge> RemoveVertex<VertexKey>
@@ -56,7 +63,7 @@ where
     type Output = <Graph as RemoveVertex<VertexKey>>::Output;
 
     fn remove_vertex(&mut self, key: &VertexKey) -> Option<Self::Output> {
-        self.sender.send(Entries::RemoveVertex(key.clone()));
+        self.send(Entries::RemoveVertex(key.clone()));
         self.graph.remove_vertex(key)
     }
 }
@@ -70,7 +77,7 @@ where
     type Output = <Graph as RemoveEdge<EdgeKey>>::Output;
 
     fn remove_edge(&mut self, key: &EdgeKey) -> Option<Self::Output> {
-        self.sender.send(Entries::RemoveEdge(key.clone()));
+        self.send(Entries::RemoveEdge(key.clone()));
         self.graph.remove_edge(key)
     }
 }
@@ -87,7 +94,7 @@ where
     type IntoIter = <Graph as Neighbours<'a, Orientation, VertexKey>>::IntoIter;
 
     fn neighbours(&'a self, vertex: &VertexKey) -> Option<Self::IntoIter> {
-        self.sender
+        self
             .send(Entries::Neighbours(Box::new(Orientation::default()), vertex.clone()));
         self.graph.neighbours(vertex)
     }
@@ -109,7 +116,7 @@ where
         to: &VertexKey,
         value: Edge,
     ) -> Result<Self::EdgeKey, Edge> {
-        self.sender.send(Entries::AddEdge(
+        self.send(Entries::AddEdge(
             Box::new(Orientation::default()),
             from.clone(),
             to.clone(),
@@ -128,7 +135,7 @@ where
     type Key = <Graph as AddVertex<Vertex>>::Key;
 
     fn add_vertex(&mut self, vertex: Vertex) -> Result<Self::Key, Vertex> {
-        self.sender.send(Entries::AddVertex(vertex.clone()));
+        self.send(Entries::AddVertex(vertex.clone()));
         self.graph.add_vertex(vertex)
     }
 }
@@ -142,7 +149,7 @@ where
     type Output = <Graph as GetVertex<VertexKey>>::Output;
 
     fn get_vertex(&self, key: &VertexKey) -> Option<&Self::Output> {
-        self.sender.send(Entries::GetVertex(key.clone()));
+        self.send(Entries::GetVertex(key.clone()));
         self.graph.get_vertex(key)
     }
 }
@@ -156,7 +163,7 @@ where
     type Output = <Graph as GetEdge<EdgeKey>>::Output;
 
     fn get_edge(&self, key: &EdgeKey) -> Option<&Self::Output> {
-        self.sender.send(Entries::GetEdge(key.clone()));
+        self.send(Entries::GetEdge(key.clone()));
         self.graph.get_edge(key)
     }
 }
@@ -170,7 +177,7 @@ where
     type Output = <Graph as GetEdgeTo<'a, EdgeKey>>::Output;
 
     fn get_edge_to(&'a self, key: &EdgeKey) -> Option<Self::Output> {
-        self.sender.send(Entries::GetEdgeTo(key.clone()));
+        self.send(Entries::GetEdgeTo(key.clone()));
         self.graph.get_edge_to(key)
     }
 }
@@ -184,7 +191,7 @@ where
     type Output = <Graph as Vertices<'a>>::Output;
 
     fn vertices(&'a self) -> Self::Output {
-        self.sender.send(Entries::Vertices());
+        self.send(Entries::Vertices());
         self.graph.vertices()
     }
 }
@@ -198,7 +205,7 @@ where
     type Output = <Graph as Edges<'a>>::Output;
 
     fn edges(&'a self) -> Self::Output {
-        self.sender.send(Entries::Edges());
+        self.send(Entries::Edges());
         self.graph.edges()
     }
 }
@@ -256,11 +263,7 @@ mod tests {
     use std::sync::mpsc::channel;
     use crate::wrapper::oriented::Orient;
     use crate::dev::orientation::Directed;
-
-    fn is_partial_match(){
-
-    }
-
+    
     #[test]
     fn add_vertex() {
         let (sender,receiver) = channel();
@@ -269,7 +272,7 @@ mod tests {
 
         graph.add_vertex((0,()));
 
-        assert!(match receiver.recv().unwrap(){
+        assert!(match receiver.recv().unwrap().1{
             Entries::AddVertex((0,())) => true,
             _ => false
         });
@@ -288,17 +291,17 @@ mod tests {
         let edge = graph.add_edge(&a, &b, ("", ()));
 
         assert!(
-            match receiver.recv().unwrap(){
+            match receiver.recv().unwrap().1{
                 Entries::AddVertex((0,())) => true,
                 _ => false
         });
         assert!(
-            match receiver.recv().unwrap(){
+            match receiver.recv().unwrap().1{
                 Entries::AddVertex((1,())) => true,
                 _ => false
             });
         assert!(
-            match receiver.recv().unwrap(){
+            match receiver.recv().unwrap().1{
                 Entries::AddEdge(_ , a, b, ("",())) => true,
                 _ => false
             });
