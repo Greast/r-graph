@@ -1,9 +1,12 @@
-use crate::dev::orientation::{AddEdge};
-use crate::dev::{orientation, AddVertex, Edges, GetEdge, GetEdgeTo, GetVertex, Neighbours, RemoveEdge, RemoveVertex, Vertices, Merge};
+use crate::dev::orientation::AddEdge;
+use crate::dev::transform::Transform;
+use crate::dev::{
+    orientation, AddVertex, Edges, GetEdge, GetEdgeTo, GetVertex, Merge, Neighbours, RemoveEdge,
+    RemoveVertex, Vertices,
+};
 use std::marker::PhantomData;
 use std::ops::{Deref, DerefMut};
 use std::sync::mpsc::Sender;
-use crate::dev::transform::Transform;
 use std::time::Instant;
 
 pub trait Log<VertexKey, Vertex, EdgeKey, Edge>
@@ -16,9 +19,7 @@ where
     ) -> Logger<Self, VertexKey, Vertex, EdgeKey, Edge>;
 }
 
-impl<Graph, VertexKey, Vertex, EdgeKey, Edge>
-    Log<VertexKey, Vertex, EdgeKey, Edge> for Graph
-{
+impl<Graph, VertexKey, Vertex, EdgeKey, Edge> Log<VertexKey, Vertex, EdgeKey, Edge> for Graph {
     fn log(
         self,
         sender: Sender<(Instant, Entries<VertexKey, Vertex, EdgeKey, Edge>)>,
@@ -34,7 +35,12 @@ pub enum Entries<VertexKey, Vertex, EdgeKey, Edge> {
     RemoveVertex(VertexKey),
     RemoveEdge(EdgeKey),
     Neighbours(Box<dyn orientation::Orientation>, VertexKey),
-    AddEdge(Box<dyn orientation::Orientation>, VertexKey, VertexKey, Edge),
+    AddEdge(
+        Box<dyn orientation::Orientation>,
+        VertexKey,
+        VertexKey,
+        Edge,
+    ),
     AddVertex(Vertex),
     GetVertex(VertexKey),
     GetEdge(EdgeKey),
@@ -48,8 +54,8 @@ pub struct Logger<Graph, VertexKey, Vertex, EdgeKey, Edge> {
     sender: Sender<(Instant, Entries<VertexKey, Vertex, EdgeKey, Edge>)>,
 }
 
-impl<Graph, VertexKey, Vertex, EdgeKey, Edge> Logger<Graph, VertexKey, Vertex, EdgeKey, Edge>{
-    pub fn send(&self, entry:Entries<VertexKey, Vertex, EdgeKey, Edge>){
+impl<Graph, VertexKey, Vertex, EdgeKey, Edge> Logger<Graph, VertexKey, Vertex, EdgeKey, Edge> {
+    pub fn send(&self, entry: Entries<VertexKey, Vertex, EdgeKey, Edge>) {
         self.sender.send((Instant::now(), entry));
     }
 }
@@ -83,8 +89,7 @@ where
 }
 
 impl<'a, Graph, Orientation, VertexKey, Vertex, EdgeKey, Edge>
-    Neighbours<'a, Orientation, VertexKey>
-    for Logger<Graph, VertexKey, Vertex, EdgeKey, Edge>
+    Neighbours<'a, Orientation, VertexKey> for Logger<Graph, VertexKey, Vertex, EdgeKey, Edge>
 where
     Orientation: 'static + Default + orientation::Orientation,
     VertexKey: 'a + Clone,
@@ -94,8 +99,10 @@ where
     type IntoIter = <Graph as Neighbours<'a, Orientation, VertexKey>>::IntoIter;
 
     fn neighbours(&'a self, vertex: &VertexKey) -> Option<Self::IntoIter> {
-        self
-            .send(Entries::Neighbours(Box::new(Orientation::default()), vertex.clone()));
+        self.send(Entries::Neighbours(
+            Box::new(Orientation::default()),
+            vertex.clone(),
+        ));
         self.graph.neighbours(vertex)
     }
 }
@@ -216,19 +223,12 @@ impl<Graph2, Graph, VertexKey, Vertex, EdgeKey, Edge>
 where
     Graph: Merge<Graph2>,
 {
-    type Output =
-        Logger<<Graph as Merge<Graph2>>::Output, VertexKey, Vertex, EdgeKey, Edge>;
+    type Output = Logger<<Graph as Merge<Graph2>>::Output, VertexKey, Vertex, EdgeKey, Edge>;
 
     fn merge(
         self,
         other: Logger<Graph2, VertexKey, Vertex, EdgeKey, Edge>,
-    ) -> Result<
-        Self::Output,
-        (
-            Self,
-            Logger<Graph2, VertexKey, Vertex, EdgeKey, Edge>,
-        ),
-    > {
+    ) -> Result<Self::Output, (Self, Logger<Graph2, VertexKey, Vertex, EdgeKey, Edge>)> {
         let output = self.graph.merge(other.graph);
         match output {
             Ok(x) => Ok(x.log(self.sender)),
@@ -238,13 +238,8 @@ where
 }
 
 impl<VKmap, Vmap, EKmap, Emap, Graph2, VertexKey, Vertex, EdgeKey, Edge, Graph>
-    Transform<
-        VKmap,
-        Vmap,
-        EKmap,
-        Emap,
-        Logger<Graph, VertexKey, Vertex, EdgeKey, Edge>,
-    > for Logger<Graph2, VertexKey, Vertex, EdgeKey, Edge>
+    Transform<VKmap, Vmap, EKmap, Emap, Logger<Graph, VertexKey, Vertex, EdgeKey, Edge>>
+    for Logger<Graph2, VertexKey, Vertex, EdgeKey, Edge>
 where
     Graph2: Transform<VKmap, Vmap, EKmap, Emap, Graph>,
 {
@@ -259,51 +254,48 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::dev::simple::Simple;
-    use std::sync::mpsc::channel;
-    use crate::wrapper::oriented::Orient;
     use crate::dev::orientation::Directed;
-    
+    use crate::dev::simple::Simple;
+    use crate::wrapper::oriented::Orient;
+    use std::sync::mpsc::channel;
+
     #[test]
     fn add_vertex() {
-        let (sender,receiver) = channel();
-        let mut simple:Simple<_, _, usize, ()> = Simple::default();
-        let mut graph:Logger<_,usize,_,usize,()> = simple.log(sender);
+        let (sender, receiver) = channel();
+        let mut simple: Simple<_, _, usize, ()> = Simple::default();
+        let mut graph: Logger<_, usize, _, usize, ()> = simple.log(sender);
 
-        graph.add_vertex((0,()));
+        graph.add_vertex((0, ()));
 
-        assert!(match receiver.recv().unwrap().1{
-            Entries::AddVertex((0,())) => true,
-            _ => false
+        assert!(match receiver.recv().unwrap().1 {
+            Entries::AddVertex((0, ())) => true,
+            _ => false,
         });
     }
 
     #[test]
     fn add_edge() {
-        let (sender,receiver) = channel();
-        let mut simple:Simple<_, _, _, _> = Simple::default();
-        let mut log:Logger<_, usize, _, usize, _> = simple.log(sender);
+        let (sender, receiver) = channel();
+        let mut simple: Simple<_, _, _, _> = Simple::default();
+        let mut log: Logger<_, usize, _, usize, _> = simple.log(sender);
         let mut graph = log.orient(Directed);
 
-        let a = graph.add_vertex((0,())).unwrap();
-        let b = graph.add_vertex((1,())).unwrap();
+        let a = graph.add_vertex((0, ())).unwrap();
+        let b = graph.add_vertex((1, ())).unwrap();
 
         let edge = graph.add_edge(&a, &b, ("", ()));
 
-        assert!(
-            match receiver.recv().unwrap().1{
-                Entries::AddVertex((0,())) => true,
-                _ => false
+        assert!(match receiver.recv().unwrap().1 {
+            Entries::AddVertex((0, ())) => true,
+            _ => false,
         });
-        assert!(
-            match receiver.recv().unwrap().1{
-                Entries::AddVertex((1,())) => true,
-                _ => false
-            });
-        assert!(
-            match receiver.recv().unwrap().1{
-                Entries::AddEdge(_ , a, b, ("",())) => true,
-                _ => false
-            });
+        assert!(match receiver.recv().unwrap().1 {
+            Entries::AddVertex((1, ())) => true,
+            _ => false,
+        });
+        assert!(match receiver.recv().unwrap().1 {
+            Entries::AddEdge(_, a, b, ("", ())) => true,
+            _ => false,
+        });
     }
 }
