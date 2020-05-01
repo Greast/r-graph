@@ -26,15 +26,15 @@ where
 
 ///Contains types and traits for edges and their orientation.
 pub mod orientation {
-    pub trait Orientation {}
+    pub trait Orientation{}
 
     ///Tells the current context, that concerning edge(s) are to be interpreted as directed.
-    #[derive(Default, Debug, Eq, PartialEq)]
+    #[derive(Default, Clone, Debug, Eq, PartialEq)]
     pub struct Directed;
     impl Orientation for Directed {}
 
     ///Tells the current context, that concerning edge(s) are to be interpreted as undirected/bidirected.
-    #[derive(Default, Debug, Eq, PartialEq)]
+    #[derive(Default, Clone, Debug, Eq, PartialEq)]
     pub struct Undirected;
     impl Orientation for Undirected {}
 
