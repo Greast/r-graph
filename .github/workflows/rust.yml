@@ -13,12 +13,6 @@ jobs:
     - name: setup
       run: rustup install nightly
 
-    - name: Format
-      run: cargo fmt
-
-    - name: Fix
-      run: cargo +nightly fix --allow-dirty
-
     - name: Build
       run: cargo +nightly build --verbose
 
