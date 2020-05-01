@@ -4,8 +4,8 @@ use crate::dev::{
     orientation, AddVertex, Edges, GetEdge, GetEdgeTo, GetVertex, Merge, Neighbours, RemoveEdge,
     RemoveVertex, Vertices,
 };
-use std::marker::PhantomData;
-use std::ops::{Deref, DerefMut};
+
+
 use std::sync::mpsc::Sender;
 use std::time::Instant;
 
@@ -262,7 +262,7 @@ mod tests {
     #[test]
     fn add_vertex() {
         let (sender, receiver) = channel();
-        let mut simple: Simple<_, _, usize, ()> = Simple::default();
+        let simple: Simple<_, _, usize, ()> = Simple::default();
         let mut graph: Logger<_, usize, _, usize, ()> = simple.log(sender);
 
         graph.add_vertex((0, ()));
@@ -276,14 +276,14 @@ mod tests {
     #[test]
     fn add_edge() {
         let (sender, receiver) = channel();
-        let mut simple: Simple<_, _, _, _> = Simple::default();
-        let mut log: Logger<_, usize, _, usize, _> = simple.log(sender);
+        let simple: Simple<_, _, _, _> = Simple::default();
+        let log: Logger<_, usize, _, usize, _> = simple.log(sender);
         let mut graph = log.orient(Directed);
 
         let a = graph.add_vertex((0, ())).unwrap();
         let b = graph.add_vertex((1, ())).unwrap();
 
-        let edge = graph.add_edge(&a, &b, ("", ()));
+        let _edge = graph.add_edge(&a, &b, ("", ()));
 
         assert!(match receiver.recv().unwrap().1 {
             Entries::AddVertex((0, ())) => true,
@@ -294,7 +294,7 @@ mod tests {
             _ => false,
         });
         assert!(match receiver.recv().unwrap().1 {
-            Entries::AddEdge(_, a, b, ("", ())) => true,
+            Entries::AddEdge(_, _a, _b, ("", ())) => true,
             _ => false,
         });
     }
