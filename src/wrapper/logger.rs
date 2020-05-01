@@ -30,6 +30,43 @@ impl<Graph, VertexKey, Vertex, EdgeKey, Edge>
 }
 
 pub enum Entries<VertexKey, Vertex, EdgeKey, Edge> {
+=======
+use crate::dev::orientation::AddEdge;
+use crate::dev::{
+    orientation, AddVertex, Edges, GetEdge, GetEdgeTo, GetVertex, Merge, Neighbours, RemoveEdge,
+    RemoveVertex, Vertices,
+};
+
+use std::sync::mpsc::Sender;
+
+use crate::dev::transform::Transform;
+
+pub trait Log<Orientation, VertexKey, Vertex, EdgeKey, Edge>
+where
+    Self: Sized,
+{
+    fn log(
+        self,
+        sender: Sender<Entries<Orientation, VertexKey, Vertex, EdgeKey, Edge>>,
+    ) -> Logger<Self, Orientation, VertexKey, Vertex, EdgeKey, Edge>;
+}
+
+impl<Graph, Orientation, VertexKey, Vertex, EdgeKey, Edge>
+    Log<Orientation, VertexKey, Vertex, EdgeKey, Edge> for Graph
+{
+    fn log(
+        self,
+        sender: Sender<Entries<Orientation, VertexKey, Vertex, EdgeKey, Edge>>,
+    ) -> Logger<Self, Orientation, VertexKey, Vertex, EdgeKey, Edge> {
+        Logger {
+            graph: self,
+            sender,
+        }
+    }
+}
+
+#[derive(Clone, Debug, Ord, PartialOrd, Eq, PartialEq)]
+pub enum Entries<Orientation, VertexKey, Vertex, EdgeKey, Edge> {
     RemoveVertex(VertexKey),
     RemoveEdge(EdgeKey),
     Neighbours(Box<dyn orientation::Orientation>, VertexKey),
@@ -202,7 +239,6 @@ where
         self.graph.edges()
     }
 }
-
 impl<Graph2, Graph, VertexKey, Vertex, EdgeKey, Edge>
     Merge<Logger<Graph2, VertexKey, Vertex, EdgeKey, Edge>>
     for Logger<Graph, VertexKey, Vertex, EdgeKey, Edge>
