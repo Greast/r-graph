@@ -178,7 +178,7 @@ where
     ) -> Result<Self::Output, (Self, Vertex<Graph2, VertexKey>)> {
         let output = self.graph.merge(other.graph);
         match output {
-            Ok(x) => Ok(x.into()),
+            Ok(x) => Ok(x),
             Err((x, y)) => Err((x.into(), y.into())),
         }
     }

@@ -180,7 +180,7 @@ where
     ) -> Result<Self::Output, (Self, Edge<Graph2, EdgeKey>)> {
         let output = self.graph.merge(other.graph);
         match output {
-            Ok(x) => Ok(x.into()),
+            Ok(x) => Ok(x),
             Err((x, y)) => Err((x.into(), y.into())),
         }
     }

@@ -56,7 +56,9 @@ pub struct Logger<Graph, VertexKey, Vertex, EdgeKey, Edge> {
 
 impl<Graph, VertexKey, Vertex, EdgeKey, Edge> Logger<Graph, VertexKey, Vertex, EdgeKey, Edge> {
     pub fn send(&self, entry: Entries<VertexKey, Vertex, EdgeKey, Edge>) {
-        self.sender.send((Instant::now(), entry));
+        #[allow(unused_must_use)] {
+            self.sender.send((Instant::now(), entry));
+        }
     }
 }
 
