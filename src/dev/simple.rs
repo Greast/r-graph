@@ -101,7 +101,7 @@ where
             .unwrap()
             .from
             .insert(key.clone());
-        self.vertices.get_mut(&to).unwrap().to.insert(key.clone());
+        self.vertices.get_mut(&to).unwrap().to.insert(key);
         Ok(output)
     }
 }

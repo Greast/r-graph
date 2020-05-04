@@ -8,6 +8,7 @@ struct Mapper<VKmap, Vmap, EKmap, Emap, VK, V, EK, E> {
     v_map: Vmap,
     ek_map: EKmap,
     e_map: Emap,
+    #[allow(dead_code)]
     phantom: (
         PhantomData<VK>,
         PhantomData<V>,
