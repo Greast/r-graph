@@ -26,7 +26,7 @@ where
 
 ///Contains types and traits for edges and their orientation.
 pub mod orientation {
-    pub trait Orientation{}
+    pub trait Orientation {}
 
     ///Tells the current context, that concerning edge(s) are to be interpreted as directed.
     #[derive(Default, Clone, Debug, Eq, PartialEq)]
