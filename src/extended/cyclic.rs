@@ -54,7 +54,7 @@ where
         while let Some(cluster) = take_random(&mut vertices) {
             queue.push_back((None, cluster));
 
-            while let Some((mut from, vertex)) = queue.pop_front() {
+            while let Some((from, vertex)) = queue.pop_front() {
 
                 vertices.remove(&vertex);
                 for (edge, vert) in self.neighbours(vertex).into_iter().flatten(){
