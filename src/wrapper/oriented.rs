@@ -185,7 +185,7 @@ where
     ) -> Result<Self::Output, (Self, Oriented<Graph2, Orientation>)> {
         let output = self.graph.merge(other.graph);
         match output {
-            Ok(x) => Ok(x.orient(self.orientation)),
+            Ok(x) => Ok(x),
             Err((x, y)) => Err((x.orient(self.orientation), y.orient(other.orientation))),
         }
     }
