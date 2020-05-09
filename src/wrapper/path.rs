@@ -166,7 +166,7 @@ impl<Graph2, Graph> Merge<Path<Graph2>> for Path<Graph>
 where
     Graph: Merge<Graph2>,
 {
-    type Output = Path<<Graph as Merge<Graph2>>::Output>;
+    type Output = <Graph as Merge<Graph2>>::Output;
 
     fn merge(self, other: Path<Graph2>) -> Result<Self::Output, (Self, Path<Graph2>)> {
         let output = self.graph.merge(other.graph);

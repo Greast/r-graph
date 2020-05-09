@@ -5,7 +5,7 @@ use std::hash::Hash;
 use std::marker::PhantomData;
 
 ///Dynamic programming version of breadth first search. Allows for efficient search of multiple end points.
-struct Breadth<'a, Graph, Key, Edge, Orientation> {
+pub struct Breadth<'a, Graph, Key, Edge, Orientation> {
     graph: &'a Graph,
     from: &'a Key,
     visited: HashMap<&'a Key, (&'a Key, &'a Edge)>,
