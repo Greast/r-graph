@@ -177,7 +177,7 @@ impl<Graph2, Graph, Orientation> Merge<Oriented<Graph2, Orientation>>
 where
     Graph: Merge<Graph2>,
 {
-    type Output = Oriented<<Graph as Merge<Graph2>>::Output, Orientation>;
+    type Output = <Graph as Merge<Graph2>>::Output;
 
     fn merge(
         self,
