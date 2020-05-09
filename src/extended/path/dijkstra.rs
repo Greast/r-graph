@@ -8,7 +8,7 @@ use std::marker::PhantomData;
 use std::ops::AddAssign;
 
 ///Dynamic programming version of dijkstras algorithm. Allows for efficient search of multiple end points.
-struct Dijkstra<'a, Graph, Vertex, Edge, Weight, Orientation> {
+pub struct Dijkstra<'a, Graph, Vertex, Edge, Weight, Orientation> {
     from: &'a Vertex,
     graph: &'a Graph,
     visited: HashMap<&'a Vertex, (Weight, &'a Vertex, &'a Edge)>,
