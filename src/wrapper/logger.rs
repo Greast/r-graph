@@ -51,7 +51,7 @@ pub enum Entries<VertexKey, Vertex, EdgeKey, Edge> {
 
 pub struct Logger<Graph, VertexKey, Vertex, EdgeKey, Edge> {
     graph: Graph,
-    sender: Sender<(Instant, Entries<VertexKey, Vertex, EdgeKey, Edge>)>,
+    pub sender: Sender<(Instant, Entries<VertexKey, Vertex, EdgeKey, Edge>)>,
 }
 
 impl<Graph, VertexKey, Vertex, EdgeKey, Edge> Logger<Graph, VertexKey, Vertex, EdgeKey, Edge> {
@@ -224,7 +224,7 @@ impl<Graph2, Graph, VertexKey, Vertex, EdgeKey, Edge>
 where
     Graph: Merge<Graph2>,
 {
-    type Output = Logger<<Graph as Merge<Graph2>>::Output, VertexKey, Vertex, EdgeKey, Edge>;
+    type Output = <Graph as Merge<Graph2>>::Output;
 
     fn merge(
         self,
@@ -232,7 +232,7 @@ where
     ) -> Result<Self::Output, (Self, Logger<Graph2, VertexKey, Vertex, EdgeKey, Edge>)> {
         let output = self.graph.merge(other.graph);
         match output {
-            Ok(x) => Ok(x.log(self.sender)),
+            Ok(x) => Ok(x),
             Err((x, y)) => Err((x.log(self.sender), y.log(other.sender))),
         }
     }

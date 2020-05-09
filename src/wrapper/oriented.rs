@@ -177,7 +177,7 @@ impl<Graph2, Graph, Orientation> Merge<Oriented<Graph2, Orientation>>
 where
     Graph: Merge<Graph2>,
 {
-    type Output = Oriented<<Graph as Merge<Graph2>>::Output, Orientation>;
+    type Output = <Graph as Merge<Graph2>>::Output;
 
     fn merge(
         self,
@@ -185,7 +185,7 @@ where
     ) -> Result<Self::Output, (Self, Oriented<Graph2, Orientation>)> {
         let output = self.graph.merge(other.graph);
         match output {
-            Ok(x) => Ok(x.orient(self.orientation)),
+            Ok(x) => Ok(x),
             Err((x, y)) => Err((x.orient(self.orientation), y.orient(other.orientation))),
         }
     }
