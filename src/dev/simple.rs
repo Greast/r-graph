@@ -226,13 +226,19 @@ where
     type IntoIter = Vec<(Self::Edge, &'a VertexKey)>;
 
     fn neighbours(&'a self, vertex: &VertexKey) -> Option<Self::IntoIter> {
-        let to = self.vertices.get(vertex)?.to.iter().flat_map(|key| {
-            Some((key, self.edges.get(key)?.other(vertex)))
-        });
+        let to = self
+            .vertices
+            .get(vertex)?
+            .to
+            .iter()
+            .flat_map(|key| Some((key, self.edges.get(key)?.other(vertex))));
 
-        let from = self.vertices.get(vertex)?.from.iter().flat_map(|key| {
-            Some((key, self.edges.get(key)?.other(vertex)))
-        });
+        let from = self
+            .vertices
+            .get(vertex)?
+            .from
+            .iter()
+            .flat_map(|key| Some((key, self.edges.get(key)?.other(vertex))));
 
         to.chain(from).collect::<Vec<_>>().into()
     }
