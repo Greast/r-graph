@@ -5,7 +5,6 @@ use crate::dev::{
     RemoveVertex, Vertices,
 };
 
-
 use std::sync::mpsc::Sender;
 use std::time::Instant;
 
@@ -56,7 +55,8 @@ pub struct Logger<Graph, VertexKey, Vertex, EdgeKey, Edge> {
 
 impl<Graph, VertexKey, Vertex, EdgeKey, Edge> Logger<Graph, VertexKey, Vertex, EdgeKey, Edge> {
     pub fn send(&self, entry: Entries<VertexKey, Vertex, EdgeKey, Edge>) {
-        #[allow(unused_must_use)] {
+        #[allow(unused_must_use)]
+        {
             self.sender.send((Instant::now(), entry));
         }
     }

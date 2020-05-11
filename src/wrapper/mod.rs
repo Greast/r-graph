@@ -2,6 +2,7 @@ pub mod logger;
 pub mod oriented;
 pub mod path;
 pub mod random;
+pub mod transaction;
 
 pub use crate::dev::simple::Simple;
 pub use oriented::Oriented;
