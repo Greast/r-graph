@@ -55,10 +55,8 @@ where
             queue.push_back((None, cluster));
 
             while let Some((from, vertex)) = queue.pop_front() {
-
                 vertices.remove(&vertex);
-                for (edge, vert) in self.neighbours(vertex).into_iter().flatten(){
-
+                for (edge, vert) in self.neighbours(vertex).into_iter().flatten() {
                     if let Some(true) = from.as_ref().map(|x| x == &edge) {
                         continue;
                     }
