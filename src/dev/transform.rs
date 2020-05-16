@@ -3,6 +3,24 @@ use std::convert::identity;
 use std::marker::PhantomData;
 use std::ops::{Deref, DerefMut};
 
+pub trait Collect {
+    type Output;
+    fn collect(self) -> Option<Self::Output>;
+}
+
+pub trait Map<'a, Trans, T, R, Func> {
+    type Mapper: Collect;
+    fn map(self, func: &'a Func) -> Self::Mapper;
+}
+
+pub mod transformers {
+    pub struct VertexKey;
+    pub struct Vertex;
+    pub struct EdgeKey;
+    pub struct Edge;
+}
+
+/*
 struct Mapper<VKmap, Vmap, EKmap, Emap, VK, V, EK, E> {
     vk_map: VKmap,
     v_map: Vmap,
@@ -161,3 +179,4 @@ impl<VKmap, Vmap, EKmap, Emap, VK, V, EK, E, Graph>
         Graph2::collect(self.graph, tuple)
     }
 }
+*/

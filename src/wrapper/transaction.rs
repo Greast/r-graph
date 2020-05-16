@@ -9,7 +9,7 @@ struct Transaction<'a, Graph> {
     failed: bool,
 }
 
-impl<'a, Graph> Deref for Transaction<'a, Graph>{
+impl<'a, Graph> Deref for Transaction<'a, Graph> {
     type Target = Graph;
 
     fn deref(&self) -> &Self::Target {
@@ -59,9 +59,9 @@ where
 
 impl<'a, O, Vk, Input, Graph> AddEdge<O, Vk, Input> for Transaction<'a, Graph>
 where
-    O : Orientation,
+    O: Orientation,
     Graph: AddEdge<O, Vk, Input> + RemoveEdge<<Graph as AddEdge<O, Vk, Input>>::EdgeKey>,
-    <Graph as AddEdge<O, Vk, Input>>::EdgeKey : 'a + Clone,
+    <Graph as AddEdge<O, Vk, Input>>::EdgeKey: 'a + Clone,
 {
     type EdgeKey = <Graph as AddEdge<O, Vk, Input>>::EdgeKey;
 

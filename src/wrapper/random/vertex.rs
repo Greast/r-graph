@@ -1,5 +1,4 @@
 use crate::dev::orientation::AddEdge;
-use crate::dev::transform::{Transform, Transformer};
 use crate::dev::{
     orientation, AddVertex, Dot, Edges, GetEdge, GetEdgeTo, GetVertex, Merge, Neighbours,
     RemoveEdge, RemoveVertex, Vertices,
@@ -9,6 +8,7 @@ use rand::random;
 use std::marker::PhantomData;
 use std::ops::{Deref, DerefMut};
 use std::rc::Rc;
+use crate::dev::transform::{Collect, Map};
 
 #[derive(Clone, Debug, Eq, PartialEq, Default)]
 pub struct Vertex<Graph, VertexKey = usize> {
@@ -184,52 +184,33 @@ where
     }
 }
 
-impl<'a, VKmap, Vmap, EKmap, Emap, VK, V, EK, E, Graph> Merge
-    for Transformer<VKmap, Vmap, EKmap, Emap, VK, V, EK, E, Vertex<Graph, VK>>
-where
-    Graph: 'a + Merge + GetVertex<VK>,
-    Standard: Distribution<VK>,
-    VKmap: Fn(VK) -> VK,
-    Vertex<Graph, VK>: Transform<
-        <VKmap as Dot<VK, VK, VK, Box<dyn 'a + Fn(VK) -> VK>>>::Output,
-        Vmap,
-        EKmap,
-        Emap,
-        Vertex<Graph, VK>,
-    >,
-    EK: 'a,
-    E: 'a,
-    V: 'a,
-    VK: 'a,
-    Emap: 'a,
-    EKmap: 'a,
-    Vmap: 'a,
-    VKmap: 'a,
-{
-    type Output = <Vertex<Graph, VK> as Merge>::Output;
+struct VertexTransformer<Trans, VertexKey>{
+    transformer : Trans,
+    phantom:PhantomData<(VertexKey,)>
+}
 
-    fn merge(self, other: Self) -> Result<Self::Output, (Self, Self)> {
-        let rc = Rc::new(other);
+impl<Trans, VertexKey> Collect for VertexTransformer<Trans, VertexKey>
+    where
+        Trans : Collect{
+    type Output = Vertex<<Trans as Collect>::Output, VertexKey>;
 
-        let rc1 = rc.clone();
-        let closure: Box<dyn Fn(VK) -> VK> = Box::new(move |mut key| {
-            while rc1.get_vertex(&key).is_some() {
-                key = random();
-            }
-            key
-        });
-
-        let this: Vertex<Graph, VK> = self.map_vertex_key(closure).collect();
-        let other = Rc::try_unwrap(rc).ok().unwrap();
-        Ok(this.merge(other.graph).ok().unwrap())
+    fn collect(self) -> Option<Self::Output> {
+        Vertex{
+            graph: self.transformer.collect()?,
+            vertex_key: PhantomData
+        }.into()
     }
 }
-impl<VKmap, Vmap, EKmap, Emap, Graph, VertexKey, Graph2, VertexKey2>
-    Transform<VKmap, Vmap, EKmap, Emap, Vertex<Graph, VertexKey>> for Vertex<Graph2, VertexKey2>
-where
-    Graph2: Transform<VKmap, Vmap, EKmap, Emap, Graph>,
-{
-    fn collect(graph: Vertex<Graph, VertexKey>, maps: (VKmap, Vmap, EKmap, Emap)) -> Self {
-        Graph2::collect(graph.graph, maps).into()
+
+impl <'a, Type, Func, Trans, VertexKey> Map<'a, Type, VertexKey, VertexKey, Func> for VertexTransformer<Trans, VertexKey>
+    where
+        Trans : Map<'a, Type, VertexKey, VertexKey, Func> {
+    type Mapper = VertexTransformer<<Trans as Map<'a, Type, VertexKey, VertexKey, Func>>::Mapper, VertexKey>;
+
+    fn map(self, func: &'a Func) -> Self::Mapper {
+        VertexTransformer {
+            transformer: self.transformer.map(func),
+            phantom: PhantomData
+        }
     }
 }

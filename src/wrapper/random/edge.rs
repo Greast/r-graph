@@ -1,5 +1,4 @@
 use crate::dev::orientation::AddEdge as EdgeTrait;
-use crate::dev::transform::{Transform, Transformer};
 use crate::dev::{
     orientation, AddVertex, Dot, Edges, GetEdge, GetEdgeTo, GetVertex, Merge, Neighbours,
     RemoveEdge, RemoveVertex, Vertices,
@@ -10,6 +9,7 @@ use rand::random;
 use std::marker::PhantomData;
 use std::ops::{Deref, DerefMut};
 use std::rc::Rc;
+use crate::dev::transform::{Collect, Map};
 
 #[derive(Clone, Debug, Eq, PartialEq, Default)]
 pub struct Edge<Graph, EdgeKey = usize> {
@@ -186,53 +186,33 @@ where
     }
 }
 
-impl<'a, VKmap, Vmap, EKmap, Emap, VK, V, EK, E, Graph> Merge
-    for Transformer<VKmap, Vmap, EKmap, Emap, VK, V, EK, E, Edge<Graph, EK>>
-where
-    Graph: 'a + Merge + GetEdge<EK>,
-    Standard: Distribution<EK>,
-    EKmap: Fn(EK) -> EK,
-    Edge<Graph, EK>: Transform<
-        VKmap,
-        Vmap,
-        <EKmap as Dot<EK, EK, EK, Box<dyn 'a + Fn(EK) -> EK>>>::Output,
-        Emap,
-        Edge<Graph, EK>,
-    >,
-    EK: 'a,
-    E: 'a,
-    V: 'a,
-    VK: 'a,
-    Emap: 'a,
-    EKmap: 'a,
-    Vmap: 'a,
-    VKmap: 'a,
-{
-    type Output = <Edge<Graph, EK> as Merge>::Output;
+struct EdgeTransformer<Trans, EdgeKey>{
+    transformer : Trans,
+    phantom:PhantomData<(EdgeKey,)>
+}
 
-    fn merge(self, other: Self) -> Result<Self::Output, (Self, Self)> {
-        let rc = Rc::new(other);
+impl<Trans, EdgeKey> Collect for EdgeTransformer<Trans, EdgeKey>
+    where
+        Trans : Collect{
+    type Output = Edge<<Trans as Collect>::Output, EdgeKey>;
 
-        let rc1 = rc.clone();
-        let closure: Box<dyn Fn(EK) -> EK> = Box::new(move |mut key| {
-            while rc1.get_edge(&key).is_some() {
-                key = random();
-            }
-            key
-        });
-
-        let this: Edge<Graph, EK> = self.map_edge_key(closure).collect();
-        let other = Rc::try_unwrap(rc).ok().unwrap();
-        Ok(this.merge(other.graph).ok().unwrap())
+    fn collect(self) -> Option<Self::Output> {
+        Edge{
+            graph: self.transformer.collect()?,
+            edge_key: PhantomData
+        }.into()
     }
 }
 
-impl<VKmap, Vmap, EKmap, Emap, Graph, EdgeKey, Graph2, EdgeKey2>
-    Transform<VKmap, Vmap, EKmap, Emap, Edge<Graph, EdgeKey>> for Edge<Graph2, EdgeKey2>
-where
-    Graph2: Transform<VKmap, Vmap, EKmap, Emap, Graph>,
-{
-    fn collect(graph: Edge<Graph, EdgeKey>, maps: (VKmap, Vmap, EKmap, Emap)) -> Self {
-        Graph2::collect(graph.graph, maps).into()
+impl <'a, Type, Func, Trans, EdgeKey> Map<'a, Type, EdgeKey, EdgeKey, Func> for EdgeTransformer<Trans, EdgeKey>
+    where
+        Trans : Map<'a, Type, EdgeKey, EdgeKey, Func>{
+    type Mapper = EdgeTransformer<<Trans as Map<'a, Type, EdgeKey, EdgeKey, Func>>::Mapper, EdgeKey>;
+
+    fn map(self, func: &'a Func) -> Self::Mapper {
+        EdgeTransformer{
+            transformer: self.transformer.map(func),
+            phantom: PhantomData
+        }
     }
 }
