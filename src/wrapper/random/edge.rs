@@ -209,7 +209,7 @@ impl <'a, Type, Func, Trans, EdgeKey> Map<'a, Type, EdgeKey, EdgeKey, Func> for 
         Trans : Map<'a, Type, EdgeKey, EdgeKey, Func>{
     type Mapper = EdgeTransformer<<Trans as Map<'a, Type, EdgeKey, EdgeKey, Func>>::Mapper, EdgeKey>;
 
-    fn map(self, func: &'a Func) -> Self::Mapper {
+    fn map(self, func: Func) -> Self::Mapper {
         EdgeTransformer{
             transformer: self.transformer.map(func),
             phantom: PhantomData

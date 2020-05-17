@@ -207,7 +207,7 @@ impl <'a, Type, Func, Trans, VertexKey> Map<'a, Type, VertexKey, VertexKey, Func
         Trans : Map<'a, Type, VertexKey, VertexKey, Func> {
     type Mapper = VertexTransformer<<Trans as Map<'a, Type, VertexKey, VertexKey, Func>>::Mapper, VertexKey>;
 
-    fn map(self, func: &'a Func) -> Self::Mapper {
+    fn map(self, func: Func) -> Self::Mapper {
         VertexTransformer {
             transformer: self.transformer.map(func),
             phantom: PhantomData

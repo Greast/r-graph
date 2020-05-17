@@ -212,7 +212,7 @@ impl<'a, Type, T, R, Func, Trans, Orientation> Map<'a, Type, T, R, Func> for Ori
         Trans : Map<'a, Type, T, R, Func>{
     type Mapper = OrientedTransformer<<Trans as Map<'a, Type, T, R, Func>>::Mapper, Orientation>;
 
-    fn map(self, func: &'a Func) -> Self::Mapper {
+    fn map(self, func: Func) -> Self::Mapper {
         let transformer = self.transformer.map(func);
         OrientedTransformer{
             transformer,

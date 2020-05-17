@@ -261,7 +261,7 @@ where
     Trans : Map<'a, Type, T, T, Func>{
     type Mapper = LoggerTransformer<<Trans as Map<'a, Type, T, T, Func>>::Mapper, VertexKey, Vertex, EdgeKey, Edge>;
 
-    fn map(self, func: &'a Func) -> Self::Mapper {
+    fn map(self, func: Func) -> Self::Mapper {
         LoggerTransformer{
             transformer: self.transformer.map(func),
             sender: self.sender,

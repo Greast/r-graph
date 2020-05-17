@@ -196,7 +196,7 @@ impl<'a, Type, T, R, Func, Trans> Map<'a, Type, T, R, Func> for PathTransformer<
         Trans : Map<'a, Type, T, R, Func>{
     type Mapper = PathTransformer<<Trans as Map<'a, Type, T, R, Func>>::Mapper>;
 
-    fn map(self, func: &'a Func) -> Self::Mapper {
+    fn map(self, func: Func) -> Self::Mapper {
         let transformer = self.transformer.map(func);
         PathTransformer{transformer}
     }

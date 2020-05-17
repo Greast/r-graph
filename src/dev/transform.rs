@@ -10,7 +10,7 @@ pub trait Collect {
 
 pub trait Map<'a, Trans, T, R, Func> {
     type Mapper: Collect;
-    fn map(self, func: &'a Func) -> Self::Mapper;
+    fn map(self, func: Func) -> Self::Mapper;
 }
 
 pub mod transformers {

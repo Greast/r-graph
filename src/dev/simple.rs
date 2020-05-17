@@ -337,7 +337,7 @@ impl<'a, Func, VertexKey2, VertexIntoIter, EdgeIntoIter, VertexKey, Vertex, Edge
 where
     VertexKey2: Eq + Hash,
     EdgeKey: 'a + Eq + Hash,
-    Func: 'a + Fn(VertexKey) -> VertexKey2,
+    Func: 'a + Fn(VertexKey) -> VertexKey2 + Clone,
     VertexIntoIter:
         IntoIterator<Item = (VertexKey, Node<Vertex, HashSet<EdgeKey>, HashSet<EdgeKey>>)>,
     <VertexIntoIter as std::iter::IntoIterator>::IntoIter: 'a,
@@ -356,11 +356,12 @@ where
         Edge,
     >;
 
-    fn map(self, func: &'a Func) -> Self::Mapper {
+    fn map(self, func: Func) -> Self::Mapper {
+        let g = func.clone();
         let vertices = Box::new(
             self.vertices
                 .into_iter()
-                .map(move |(key, data)| (func(key), data)),
+                .map(move |(key, data)| (g(key), data)),
         );
 
         let edges = Box::new(self.edges.into_iter().map(move |(key, node)| {
@@ -407,7 +408,7 @@ for SimpleTransformer<VertexIntoIter, EdgeIntoIter, VertexKey, Vertex, EdgeKey, 
         Edge,
     >;
 
-    fn map(self, func: &'a Func) -> Self::Mapper {
+    fn map(self, func: Func) -> Self::Mapper {
         let vertices = Box::new(
             self.vertices
                 .into_iter()
@@ -434,7 +435,7 @@ for SimpleTransformer<VertexIntoIter, EdgeIntoIter, VertexKey, Vertex, EdgeKey, 
     where
         VertexKey: Eq + Hash,
         EdgeKey2: 'a + Eq + Hash,
-        Func: 'a + Fn(EdgeKey) -> EdgeKey2,
+        Func: 'a + Fn(EdgeKey) -> EdgeKey2 + Clone,
         VertexIntoIter: IntoIterator<Item = (VertexKey, Node<Vertex, HashSet<EdgeKey>, HashSet<EdgeKey>>)>,
         <VertexIntoIter as std::iter::IntoIterator>::IntoIter: 'a,
         EdgeIntoIter: IntoIterator<Item = (EdgeKey, Node<Edge, VertexKey, VertexKey>)>,
@@ -452,14 +453,15 @@ for SimpleTransformer<VertexIntoIter, EdgeIntoIter, VertexKey, Vertex, EdgeKey, 
         Edge,
     >;
 
-    fn map(self, func: &'a Func) -> Self::Mapper {
+    fn map(self, func: Func) -> Self::Mapper {
+        let g = func.clone();
         let vertices = Box::new(
             self.vertices
                 .into_iter()
                 .map(move |(key, node)|(key, Node{
                     data: node.data,
-                    from: node.from.into_iter().map(func).collect(),
-                    to: node.to.into_iter().map(func).collect()
+                    from: node.from.into_iter().map(g.clone()).collect(),
+                    to: node.to.into_iter().map(g.clone()).collect()
                 }))
         );
 
@@ -507,7 +509,7 @@ for SimpleTransformer<VertexIntoIter, EdgeIntoIter, VertexKey, Vertex, EdgeKey, 
         Edge2,
     >;
 
-    fn map(self, func: &'a Func) -> Self::Mapper {
+    fn map(self, func: Func) -> Self::Mapper {
         let vertices = Box::new(self.vertices.into_iter());
 
         let edges = Box::new(self.edges.into_iter().map(move |(key, node)|(
