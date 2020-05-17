@@ -6,7 +6,7 @@ use crate::dev::{
     AddVertex, Edges, GetEdge, GetEdgeTo, GetVertex, Neighbours, RemoveEdge, RemoveVertex, Vertices,
 };
 use std::collections::hash_map::Keys;
-use std::collections::{hash_map, HashMap, HashSet};
+use std::collections::{HashMap, HashSet};
 use std::hash::Hash;
 use std::marker::PhantomData;
 
@@ -308,7 +308,7 @@ where
     type Output = Simple<VertexKey, Vertex, EdgeKey, Edge>;
 
     fn collect(self) -> Option<Self::Output> {
-        let mut vertices = self.vertices.into_iter().try_fold(HashMap::new(), |mut map,(key, value)|{
+        let vertices = self.vertices.into_iter().try_fold(HashMap::new(), |mut map,(key, value)|{
             if map.insert(key, value).is_none(){
                 Some(map)
             } else {
@@ -316,7 +316,7 @@ where
             }
         })?;
 
-        let mut edges = self.edges.into_iter().try_fold(HashMap::new(), |mut map,(key, value)|{
+        let edges = self.edges.into_iter().try_fold(HashMap::new(), |mut map,(key, value)|{
             if map.insert(key, value).is_none(){
                 Some(map)
             } else {

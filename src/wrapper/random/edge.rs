@@ -1,6 +1,6 @@
 use crate::dev::orientation::AddEdge as EdgeTrait;
 use crate::dev::{
-    orientation, AddVertex, Dot, Edges, GetEdge, GetEdgeTo, GetVertex, Merge, Neighbours,
+    orientation, AddVertex, Edges, GetEdge, GetEdgeTo, GetVertex, Merge, Neighbours,
     RemoveEdge, RemoveVertex, Vertices,
 };
 
@@ -8,7 +8,7 @@ use rand::distributions::{Distribution, Standard};
 use rand::random;
 use std::marker::PhantomData;
 use std::ops::{Deref, DerefMut};
-use std::rc::Rc;
+
 use crate::dev::transform::{Collect, Map};
 
 #[derive(Clone, Debug, Eq, PartialEq, Default)]

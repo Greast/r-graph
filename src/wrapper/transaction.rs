@@ -1,6 +1,6 @@
 use crate::dev::orientation::{AddEdge, Orientation};
-use crate::dev::{AddVertex, Dot, RemoveEdge, RemoveVertex};
-use crate::wrapper::logger::Logger;
+use crate::dev::{AddVertex, RemoveEdge, RemoveVertex};
+
 use std::ops::Deref;
 
 struct Transaction<'a, Graph> {
