@@ -23,7 +23,7 @@ where
     Standard: Distribution<T>,
     G2: 'a + GetEdge<T>,
 {
-    let mut seen = Rc::new(HashMap::new());
+    let seen = Rc::new(HashMap::new());
     let reference = Rc::new(other);
 
     let mut r1 = seen.clone();

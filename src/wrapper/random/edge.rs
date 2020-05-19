@@ -11,9 +11,9 @@ use std::ops::{Deref, DerefMut};
 
 use crate::dev::transform::{transformers, Collect, Map};
 use crate::wrapper::random::safe_map;
-use std::collections::{HashMap, HashSet};
+
 use std::hash::Hash;
-use std::rc::Rc;
+
 
 #[derive(Clone, Debug, Eq, PartialEq, Default)]
 pub struct Edge<Graph, EdgeKey = usize> {
