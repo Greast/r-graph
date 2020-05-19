@@ -239,9 +239,9 @@ where
 }
 
 impl<'a, Type, T, Func, Graph, VertexKey, Vertex, EdgeKey, Edge> Map<Type, T, T, Func>
-for Logger<Graph, VertexKey, Vertex, EdgeKey, Edge>
-    where
-        Graph: Map<Type, T, T, Func>,
+    for Logger<Graph, VertexKey, Vertex, EdgeKey, Edge>
+where
+    Graph: Map<Type, T, T, Func>,
 {
     type Mapper = LoggerTransformer<
         <Graph as Map<Type, T, T, Func>>::Mapper,

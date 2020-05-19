@@ -1,24 +1,27 @@
 pub mod edge;
 pub mod vertex;
 
+use crate::dev::transform::{Collect, Map};
+use crate::dev::{GetEdge, Merge};
 pub use edge::Edge;
-pub use vertex::Vertex;
-use crate::dev::{Merge, GetEdge};
-use std::hash::Hash;
-use crate::dev::transform::{Map, Collect};
-use rand::distributions::{Standard, Distribution};
-use std::collections::HashMap;
-use std::rc::Rc;
+use rand::distributions::{Distribution, Standard};
 use rand::random;
+use std::collections::HashMap;
+use std::hash::Hash;
+use std::rc::Rc;
+pub use vertex::Vertex;
 
-fn safe_map<'a, G1, G2, E, T>(this:G1, other:G2) -> Result<<G1 as Merge<G2>>::Output, Option<(G1, G2)>>
-    where
-        T: 'a + Eq + Hash + Clone,
-        G1: Map<E, T, T, Box<dyn 'a + FnMut(T) -> T>>,
-        G1: Merge<G2>,
-        <G1 as Map<E,T,T,Box<dyn 'a + FnMut(T) -> T>>>::Mapper: Collect<Output = G1>,
-        Standard: Distribution<T>,
-        G2: 'a + GetEdge<T>,
+fn safe_map<'a, G1, G2, E, T>(
+    this: G1,
+    other: G2,
+) -> Result<<G1 as Merge<G2>>::Output, Option<(G1, G2)>>
+where
+    T: 'a + Eq + Hash + Clone,
+    G1: Map<E, T, T, Box<dyn 'a + FnMut(T) -> T>>,
+    G1: Merge<G2>,
+    <G1 as Map<E, T, T, Box<dyn 'a + FnMut(T) -> T>>>::Mapper: Collect<Output = G1>,
+    Standard: Distribution<T>,
+    G2: 'a + GetEdge<T>,
 {
     let mut seen = Rc::new(HashMap::new());
     let reference = Rc::new(other);
@@ -34,7 +37,10 @@ fn safe_map<'a, G1, G2, E, T>(this:G1, other:G2) -> Result<<G1 as Merge<G2>>::Ou
         Rc::get_mut(&mut r1).unwrap().insert(key.clone(), old);
         key
     };
-    let graph = this.map(Box::new(closure)).collect().map_or(Err(None), Ok)?;
+    let graph = this
+        .map(Box::new(closure))
+        .collect()
+        .map_or(Err(None), Ok)?;
 
     let other = Rc::try_unwrap(reference).ok().map_or(Err(None), Ok)?;
 

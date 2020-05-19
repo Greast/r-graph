@@ -178,8 +178,8 @@ where
 }
 
 impl<'a, Type, T, R, Func, Graph> Map<Type, T, R, Func> for Path<Graph>
-    where
-        Graph: Map<Type, T, R, Func>,
+where
+    Graph: Map<Type, T, R, Func>,
 {
     type Mapper = PathTransformer<<Graph as Map<Type, T, R, Func>>::Mapper>;
 
@@ -188,7 +188,6 @@ impl<'a, Type, T, R, Func, Graph> Map<Type, T, R, Func> for Path<Graph>
         PathTransformer { transformer }
     }
 }
-
 
 pub struct PathTransformer<Trans> {
     transformer: Trans,

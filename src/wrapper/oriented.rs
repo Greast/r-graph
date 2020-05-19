@@ -192,9 +192,9 @@ where
 }
 
 impl<'a, Type, T, R, Func, Graph, Orientation> Map<Type, T, R, Func>
-for Oriented<Graph, Orientation>
-    where
-        Graph: Map<Type, T, R, Func>,
+    for Oriented<Graph, Orientation>
+where
+    Graph: Map<Type, T, R, Func>,
 {
     type Mapper = OrientedTransformer<<Graph as Map<Type, T, R, Func>>::Mapper, Orientation>;
 
@@ -206,7 +206,6 @@ for Oriented<Graph, Orientation>
         }
     }
 }
-
 
 pub struct OrientedTransformer<Trans, Orientation> {
     transformer: Trans,

@@ -8,9 +8,9 @@ use rand::random;
 use std::marker::PhantomData;
 use std::ops::{Deref, DerefMut};
 
-use crate::dev::transform::{Collect, Map, transformers};
-use std::hash::Hash;
+use crate::dev::transform::{transformers, Collect, Map};
 use crate::wrapper::random::safe_map;
+use std::hash::Hash;
 
 #[derive(Clone, Debug, Eq, PartialEq, Default)]
 pub struct Vertex<Graph, VertexKey = usize> {
@@ -170,18 +170,23 @@ where
 }
 
 impl<'a, Graph2, Graph, VertexKey> Merge<Vertex<Graph2, VertexKey>> for Vertex<Graph, VertexKey>
-    where
-        VertexKey: 'a + Eq + Hash + Clone,
-        Graph: Map<transformers::VertexKey, VertexKey, VertexKey, Box<dyn 'a + FnMut(VertexKey) -> VertexKey>>,
-        <Graph as Map<
-            transformers::VertexKey,
-            VertexKey,
-            VertexKey,
-            Box<dyn 'a + FnMut(VertexKey) -> VertexKey>,
-        >>::Mapper: Collect<Output = Graph>,
-        Graph: Merge<Graph2>,
-        Standard: Distribution<VertexKey>,
-        Graph2: 'a + GetEdge<VertexKey>,
+where
+    VertexKey: 'a + Eq + Hash + Clone,
+    Graph: Map<
+        transformers::VertexKey,
+        VertexKey,
+        VertexKey,
+        Box<dyn 'a + FnMut(VertexKey) -> VertexKey>,
+    >,
+    <Graph as Map<
+        transformers::VertexKey,
+        VertexKey,
+        VertexKey,
+        Box<dyn 'a + FnMut(VertexKey) -> VertexKey>,
+    >>::Mapper: Collect<Output = Graph>,
+    Graph: Merge<Graph2>,
+    Standard: Distribution<VertexKey>,
+    Graph2: 'a + GetEdge<VertexKey>,
 {
     type Output = Vertex<<Graph as Merge<Graph2>>::Output, VertexKey>;
 
@@ -191,8 +196,8 @@ impl<'a, Graph2, Graph, VertexKey> Merge<Vertex<Graph2, VertexKey>> for Vertex<G
     ) -> Result<Self::Output, (Self, Vertex<Graph2, VertexKey>)> {
         safe_map(self.graph, other.graph)
             .map(Vertex::from)
-            .map_err(|opt|{
-                let (x,y) = opt.unwrap();
+            .map_err(|opt| {
+                let (x, y) = opt.unwrap();
                 (x.into(), y.into())
             })
     }

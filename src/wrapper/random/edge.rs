@@ -10,10 +10,10 @@ use std::marker::PhantomData;
 use std::ops::{Deref, DerefMut};
 
 use crate::dev::transform::{transformers, Collect, Map};
+use crate::wrapper::random::safe_map;
 use std::collections::{HashMap, HashSet};
 use std::hash::Hash;
 use std::rc::Rc;
-use crate::wrapper::random::safe_map;
 
 #[derive(Clone, Debug, Eq, PartialEq, Default)]
 pub struct Edge<Graph, EdgeKey = usize> {
@@ -194,8 +194,8 @@ where
     ) -> Result<Self::Output, (Self, Edge<Graph2, EdgeKey>)> {
         safe_map(self.graph, other.graph)
             .map(Edge::from)
-            .map_err(|opt|{
-                let (x,y) = opt.unwrap();
+            .map_err(|opt| {
+                let (x, y) = opt.unwrap();
                 (x.into(), y.into())
             })
     }
