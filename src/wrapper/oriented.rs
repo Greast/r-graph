@@ -1,10 +1,10 @@
 use crate::dev::orientation::AddEdge;
+use crate::dev::transform::{Collect, Map};
 use crate::dev::{
     orientation, AddVertex, Edges, GetEdge, GetEdgeTo, GetVertex, Merge, Neighbours, RemoveEdge,
     RemoveVertex, Vertices,
 };
 use std::ops::{Deref, DerefMut};
-use crate::dev::transform::{Collect, Map};
 
 pub trait Orient<Orientation>
 where
@@ -191,32 +191,54 @@ where
     }
 }
 
-struct OrientedTransformer<Trans, Orientation>{
-    transformer : Trans,
-    orientation : Orientation,
+impl<'a, Type, T, R, Func, Graph, Orientation> Map<Type, T, R, Func>
+for Oriented<Graph, Orientation>
+    where
+        Graph: Map<Type, T, R, Func>,
+{
+    type Mapper = OrientedTransformer<<Graph as Map<Type, T, R, Func>>::Mapper, Orientation>;
+
+    fn map(self, func: Func) -> Self::Mapper {
+        let transformer = self.graph.map(func);
+        OrientedTransformer {
+            transformer,
+            orientation: self.orientation,
+        }
+    }
+}
+
+
+pub struct OrientedTransformer<Trans, Orientation> {
+    transformer: Trans,
+    orientation: Orientation,
 }
 
 impl<Trans, Orientation> Collect for OrientedTransformer<Trans, Orientation>
-    where
-        Trans : Collect{
+where
+    Trans: Collect,
+{
     type Output = Oriented<<Trans as Collect>::Output, Orientation>;
 
     fn collect(self) -> Option<Self::Output> {
         let orientation = self.orientation;
-        self.transformer.collect().map(move |x|x.orient(orientation))
+        self.transformer
+            .collect()
+            .map(move |x| x.orient(orientation))
     }
 }
 
-impl<'a, Type, T, R, Func, Trans, Orientation> Map<'a, Type, T, R, Func> for OrientedTransformer<Trans, Orientation>
-    where
-        Trans : Map<'a, Type, T, R, Func>{
-    type Mapper = OrientedTransformer<<Trans as Map<'a, Type, T, R, Func>>::Mapper, Orientation>;
+impl<'a, Type, T, R, Func, Trans, Orientation> Map<Type, T, R, Func>
+    for OrientedTransformer<Trans, Orientation>
+where
+    Trans: Map<Type, T, R, Func>,
+{
+    type Mapper = OrientedTransformer<<Trans as Map<Type, T, R, Func>>::Mapper, Orientation>;
 
     fn map(self, func: Func) -> Self::Mapper {
         let transformer = self.transformer.map(func);
-        OrientedTransformer{
+        OrientedTransformer {
             transformer,
-            orientation: self.orientation
+            orientation: self.orientation,
         }
     }
 }

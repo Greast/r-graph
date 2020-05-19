@@ -1,14 +1,16 @@
 use crate::dev::orientation::AddEdge;
 use crate::dev::{
-    orientation, AddVertex, Edges, GetEdge, GetEdgeTo, GetVertex, Merge, Neighbours,
-    RemoveEdge, RemoveVertex, Vertices,
+    orientation, AddVertex, Edges, GetEdge, GetEdgeTo, GetVertex, Merge, Neighbours, RemoveEdge,
+    RemoveVertex, Vertices,
 };
 use rand::distributions::{Distribution, Standard};
 use rand::random;
 use std::marker::PhantomData;
 use std::ops::{Deref, DerefMut};
 
-use crate::dev::transform::{Collect, Map};
+use crate::dev::transform::{Collect, Map, transformers};
+use std::hash::Hash;
+use crate::wrapper::random::safe_map;
 
 #[derive(Clone, Debug, Eq, PartialEq, Default)]
 pub struct Vertex<Graph, VertexKey = usize> {
@@ -167,50 +169,67 @@ where
     }
 }
 
-impl<Graph2, Graph, VertexKey> Merge<Vertex<Graph2, VertexKey>> for Vertex<Graph, VertexKey>
-where
-    Graph: Merge<Graph2>,
+impl<'a, Graph2, Graph, VertexKey> Merge<Vertex<Graph2, VertexKey>> for Vertex<Graph, VertexKey>
+    where
+        VertexKey: 'a + Eq + Hash + Clone,
+        Graph: Map<transformers::VertexKey, VertexKey, VertexKey, Box<dyn 'a + FnMut(VertexKey) -> VertexKey>>,
+        <Graph as Map<
+            transformers::VertexKey,
+            VertexKey,
+            VertexKey,
+            Box<dyn 'a + FnMut(VertexKey) -> VertexKey>,
+        >>::Mapper: Collect<Output = Graph>,
+        Graph: Merge<Graph2>,
+        Standard: Distribution<VertexKey>,
+        Graph2: 'a + GetEdge<VertexKey>,
 {
-    type Output = <Graph as Merge<Graph2>>::Output;
+    type Output = Vertex<<Graph as Merge<Graph2>>::Output, VertexKey>;
+
     fn merge(
         self,
         other: Vertex<Graph2, VertexKey>,
     ) -> Result<Self::Output, (Self, Vertex<Graph2, VertexKey>)> {
-        let output = self.graph.merge(other.graph);
-        match output {
-            Ok(x) => Ok(x),
-            Err((x, y)) => Err((x.into(), y.into())),
-        }
+        safe_map(self.graph, other.graph)
+            .map(Vertex::from)
+            .map_err(|opt|{
+                let (x,y) = opt.unwrap();
+                (x.into(), y.into())
+            })
     }
 }
 
-struct VertexTransformer<Trans, VertexKey>{
-    transformer : Trans,
-    phantom:PhantomData<(VertexKey,)>
+struct VertexTransformer<Trans, VertexKey> {
+    transformer: Trans,
+    phantom: PhantomData<(VertexKey,)>,
 }
 
 impl<Trans, VertexKey> Collect for VertexTransformer<Trans, VertexKey>
-    where
-        Trans : Collect{
+where
+    Trans: Collect,
+{
     type Output = Vertex<<Trans as Collect>::Output, VertexKey>;
 
     fn collect(self) -> Option<Self::Output> {
-        Vertex{
+        Vertex {
             graph: self.transformer.collect()?,
-            vertex_key: PhantomData
-        }.into()
+            vertex_key: PhantomData,
+        }
+        .into()
     }
 }
 
-impl <'a, Type, Func, Trans, VertexKey> Map<'a, Type, VertexKey, VertexKey, Func> for VertexTransformer<Trans, VertexKey>
-    where
-        Trans : Map<'a, Type, VertexKey, VertexKey, Func> {
-    type Mapper = VertexTransformer<<Trans as Map<'a, Type, VertexKey, VertexKey, Func>>::Mapper, VertexKey>;
+impl<'a, Type, Func, Trans, VertexKey> Map<Type, VertexKey, VertexKey, Func>
+    for VertexTransformer<Trans, VertexKey>
+where
+    Trans: Map<Type, VertexKey, VertexKey, Func>,
+{
+    type Mapper =
+        VertexTransformer<<Trans as Map<Type, VertexKey, VertexKey, Func>>::Mapper, VertexKey>;
 
     fn map(self, func: Func) -> Self::Mapper {
         VertexTransformer {
             transformer: self.transformer.map(func),
-            phantom: PhantomData
+            phantom: PhantomData,
         }
     }
 }

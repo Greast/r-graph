@@ -4,9 +4,9 @@ use crate::dev::{
     RemoveVertex, Vertices,
 };
 
+use crate::dev::transform::{Collect, Map};
 use std::sync::mpsc::Sender;
 use std::time::Instant;
-use crate::dev::transform::{Collect, Map};
 
 pub trait Log<VertexKey, Vertex, EdgeKey, Edge>
 where
@@ -238,31 +238,63 @@ where
     }
 }
 
-struct LoggerTransformer<Trans, VertexKey, Vertex, EdgeKey, Edge>{
-    transformer : Trans,
-    sender : Sender<(Instant, Entries<VertexKey, Vertex, EdgeKey, Edge>)>,
-}
-
-impl<Trans, VertexKey, Vertex, EdgeKey, Edge> Collect for LoggerTransformer<Trans, VertexKey, Vertex, EdgeKey, Edge>
+impl<'a, Type, T, Func, Graph, VertexKey, Vertex, EdgeKey, Edge> Map<Type, T, T, Func>
+for Logger<Graph, VertexKey, Vertex, EdgeKey, Edge>
     where
-        Trans : Collect{
-    type Output = Logger<<Trans as Collect>::Output, VertexKey, Vertex, EdgeKey, Edge>;
+        Graph: Map<Type, T, T, Func>,
+{
+    type Mapper = LoggerTransformer<
+        <Graph as Map<Type, T, T, Func>>::Mapper,
+        VertexKey,
+        Vertex,
+        EdgeKey,
+        Edge,
+    >;
 
-    fn collect(self) -> Option<Self::Output> {
-        Logger{
-            graph: self.transformer.collect()?,
-            sender: self.sender
-        }.into()
+    fn map(self, func: Func) -> Self::Mapper {
+        LoggerTransformer {
+            transformer: self.graph.map(func),
+            sender: self.sender,
+        }
     }
 }
 
-impl <'a, Type, T, Func, Trans, VertexKey, Vertex, EdgeKey, Edge> Map<'a, Type, T, T, Func> for LoggerTransformer<Trans, VertexKey, Vertex, EdgeKey, Edge>
+pub struct LoggerTransformer<Trans, VertexKey, Vertex, EdgeKey, Edge> {
+    transformer: Trans,
+    sender: Sender<(Instant, Entries<VertexKey, Vertex, EdgeKey, Edge>)>,
+}
+
+impl<Trans, VertexKey, Vertex, EdgeKey, Edge> Collect
+    for LoggerTransformer<Trans, VertexKey, Vertex, EdgeKey, Edge>
 where
-    Trans : Map<'a, Type, T, T, Func>{
-    type Mapper = LoggerTransformer<<Trans as Map<'a, Type, T, T, Func>>::Mapper, VertexKey, Vertex, EdgeKey, Edge>;
+    Trans: Collect,
+{
+    type Output = Logger<<Trans as Collect>::Output, VertexKey, Vertex, EdgeKey, Edge>;
+
+    fn collect(self) -> Option<Self::Output> {
+        Logger {
+            graph: self.transformer.collect()?,
+            sender: self.sender,
+        }
+        .into()
+    }
+}
+
+impl<'a, Type, T, Func, Trans, VertexKey, Vertex, EdgeKey, Edge> Map<Type, T, T, Func>
+    for LoggerTransformer<Trans, VertexKey, Vertex, EdgeKey, Edge>
+where
+    Trans: Map<Type, T, T, Func>,
+{
+    type Mapper = LoggerTransformer<
+        <Trans as Map<Type, T, T, Func>>::Mapper,
+        VertexKey,
+        Vertex,
+        EdgeKey,
+        Edge,
+    >;
 
     fn map(self, func: Func) -> Self::Mapper {
-        LoggerTransformer{
+        LoggerTransformer {
             transformer: self.transformer.map(func),
             sender: self.sender,
         }
