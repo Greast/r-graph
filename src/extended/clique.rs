@@ -1,7 +1,7 @@
 use crate::dev::orientation::Undirected;
-use crate::dev::simple::Simple;
+
 use crate::dev::Neighbours;
-use std::collections::{HashMap, HashSet, VecDeque};
+use std::collections::{HashSet, VecDeque};
 use std::hash::Hash;
 
 pub struct CliqueIter<'a, Graph, Vk> {
