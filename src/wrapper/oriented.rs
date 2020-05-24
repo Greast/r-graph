@@ -1,5 +1,5 @@
 use crate::dev::orientation::AddEdge;
-use crate::dev::transform::Transform;
+use crate::dev::transform::{Collect, Map};
 use crate::dev::{
     orientation, AddVertex, Edges, GetEdge, GetEdgeTo, GetVertex, Merge, Neighbours, RemoveEdge,
     RemoveVertex, Vertices,
@@ -191,13 +191,53 @@ where
     }
 }
 
-impl<VKmap, Vmap, EKmap, Emap, Graph, Orientation, Graph2>
-    Transform<VKmap, Vmap, EKmap, Emap, Oriented<Graph, Orientation>>
-    for Oriented<Graph2, Orientation>
+impl<'a, Type, T, R, Func, Graph, Orientation> Map<Type, T, R, Func>
+    for Oriented<Graph, Orientation>
 where
-    Graph2: Transform<VKmap, Vmap, EKmap, Emap, Graph>,
+    Graph: Map<Type, T, R, Func>,
 {
-    fn collect(graph: Oriented<Graph, Orientation>, function: (VKmap, Vmap, EKmap, Emap)) -> Self {
-        Graph2::collect(graph.graph, function).orient(graph.orientation)
+    type Mapper = OrientedTransformer<<Graph as Map<Type, T, R, Func>>::Mapper, Orientation>;
+
+    fn map(self, func: Func) -> Self::Mapper {
+        let transformer = self.graph.map(func);
+        OrientedTransformer {
+            transformer,
+            orientation: self.orientation,
+        }
+    }
+}
+
+pub struct OrientedTransformer<Trans, Orientation> {
+    transformer: Trans,
+    orientation: Orientation,
+}
+
+impl<Trans, Orientation> Collect for OrientedTransformer<Trans, Orientation>
+where
+    Trans: Collect,
+{
+    type Output = Oriented<<Trans as Collect>::Output, Orientation>;
+
+    fn collect(self) -> Option<Self::Output> {
+        let orientation = self.orientation;
+        self.transformer
+            .collect()
+            .map(move |x| x.orient(orientation))
+    }
+}
+
+impl<'a, Type, T, R, Func, Trans, Orientation> Map<Type, T, R, Func>
+    for OrientedTransformer<Trans, Orientation>
+where
+    Trans: Map<Type, T, R, Func>,
+{
+    type Mapper = OrientedTransformer<<Trans as Map<Type, T, R, Func>>::Mapper, Orientation>;
+
+    fn map(self, func: Func) -> Self::Mapper {
+        let transformer = self.transformer.map(func);
+        OrientedTransformer {
+            transformer,
+            orientation: self.orientation,
+        }
     }
 }

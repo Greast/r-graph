@@ -1,5 +1,5 @@
 use crate::dev::orientation::AddEdge;
-use crate::dev::transform::Transform;
+use crate::dev::transform::{Collect, Map};
 use crate::dev::{
     orientation, AddVertex, Edges, GetEdge, GetEdgeTo, GetVertex, Merge, Neighbours, RemoveEdge,
     RemoveVertex, Vertices,
@@ -177,12 +177,41 @@ where
     }
 }
 
-impl<VKmap, Vmap, EKmap, Emap, Graph, Graph2> Transform<VKmap, Vmap, EKmap, Emap, Path<Graph>>
-    for Path<Graph2>
+impl<'a, Type, T, R, Func, Graph> Map<Type, T, R, Func> for Path<Graph>
 where
-    Graph2: Transform<VKmap, Vmap, EKmap, Emap, Graph>,
+    Graph: Map<Type, T, R, Func>,
 {
-    fn collect(graph: Path<Graph>, function: (VKmap, Vmap, EKmap, Emap)) -> Self {
-        Graph2::collect(graph.graph, function).into()
+    type Mapper = PathTransformer<<Graph as Map<Type, T, R, Func>>::Mapper>;
+
+    fn map(self, func: Func) -> Self::Mapper {
+        let transformer = self.graph.map(func);
+        PathTransformer { transformer }
+    }
+}
+
+pub struct PathTransformer<Trans> {
+    transformer: Trans,
+}
+
+impl<Trans> Collect for PathTransformer<Trans>
+where
+    Trans: Collect,
+{
+    type Output = Path<<Trans as Collect>::Output>;
+
+    fn collect(self) -> Option<Self::Output> {
+        self.transformer.collect().map(Into::into)
+    }
+}
+
+impl<'a, Type, T, R, Func, Trans> Map<Type, T, R, Func> for PathTransformer<Trans>
+where
+    Trans: Map<Type, T, R, Func>,
+{
+    type Mapper = PathTransformer<<Trans as Map<Type, T, R, Func>>::Mapper>;
+
+    fn map(self, func: Func) -> Self::Mapper {
+        let transformer = self.transformer.map(func);
+        PathTransformer { transformer }
     }
 }
