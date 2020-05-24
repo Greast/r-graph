@@ -14,7 +14,6 @@ use crate::wrapper::random::safe_map;
 
 use std::hash::Hash;
 
-
 #[derive(Clone, Debug, Eq, PartialEq, Default)]
 pub struct Edge<Graph, EdgeKey = usize> {
     graph: Graph,
