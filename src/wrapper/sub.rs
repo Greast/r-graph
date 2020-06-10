@@ -6,7 +6,7 @@ use std::collections::HashSet;
 use std::convert::identity;
 use std::hash::Hash;
 
-struct SubGraph<'a, Graph, Graph2> {
+pub struct SubGraph<'a, Graph, Graph2> {
     parent: &'a Graph,
     sub: Graph2,
 }
@@ -162,7 +162,7 @@ impl<'a, Graph, Graph2> SubGraph<'a, Graph, Graph2> {
     }
 }
 
-trait Sub<VertexKeyIntoIter, EdgeKeyIntoIter>
+pub trait Sub<VertexKeyIntoIter, EdgeKeyIntoIter>
     where
         Self : Sized{
     fn sub(&self) -> SubGraph<Self, Self>;
