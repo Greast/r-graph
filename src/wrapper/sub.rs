@@ -2,6 +2,7 @@ use crate::dev::orientation::{AddEdge, Orientation};
 use crate::dev::{
     orientation, AddVertex, Edges, GetEdge, GetEdgeTo, GetVertex, Neighbours, Vertices,
 };
+use itertools::Itertools;
 use std::collections::HashSet;
 use std::convert::identity;
 use std::hash::Hash;
@@ -138,15 +139,14 @@ where
 }
 
 impl<'a, Graph, Graph2> SubGraph<'a, Graph, Graph2> {
-    pub fn adjacent<Orientation, VertexKey>(
-        &'a self,
-    ) -> impl IntoIterator<
-        Item = (
-            <Graph as Neighbours<'a, Orientation, VertexKey>>::Edge,
-            &'a VertexKey,
-        ),
-    >
+    pub fn adjacent<'b, Orientation, VertexKey>(
+        &'b self,
+    ) -> HashSet<(
+        <Graph as Neighbours<'a, Orientation, VertexKey>>::Edge,
+        &VertexKey,
+    )>
     where
+        'b: 'a,
         VertexKey: 'a + Eq + Hash,
         Orientation: orientation::Orientation,
         Graph: Neighbours<'a, Orientation, VertexKey>,
@@ -160,21 +160,48 @@ impl<'a, Graph, Graph2> SubGraph<'a, Graph, Graph2> {
             .flat_map(identity)
             .collect::<HashSet<_>>()
     }
+
+    pub fn common_neighbours<'b, Orientation, VertexKey>(&'b self) -> HashSet<&VertexKey>
+    where
+        'b: 'a,
+        VertexKey: 'a + Eq + Hash,
+        Orientation: orientation::Orientation,
+        Graph: Neighbours<'a, Orientation, VertexKey>,
+        Graph2: Vertices<'a, Item = VertexKey>,
+        <Graph as Neighbours<'a, Orientation, VertexKey>>::Edge: Eq + Hash,
+    {
+        self.vertices()
+            .into_iter()
+            .filter_map(|x| self.parent.neighbours(x))
+            .map(|x| x.into_iter().map(|x| x.1).collect::<HashSet<_>>())
+            .fold1(|x, y| {
+                let mut intersection = HashSet::new();
+                for i in x {
+                    if y.contains(i) {
+                        intersection.insert(i);
+                    }
+                }
+                intersection
+            })
+            .unwrap_or_default()
+    }
 }
 
 pub trait Sub<VertexKeyIntoIter, EdgeKeyIntoIter>
-    where
-        Self : Sized{
+where
+    Self: Sized,
+{
     fn sub(&self) -> SubGraph<Self, Self>;
 }
 
 impl<Graph, VertexKeyIntoIter, EdgeKeyIntoIter> Sub<VertexKeyIntoIter, EdgeKeyIntoIter> for Graph
-    where
-        Graph : Default{
+where
+    Graph: Default,
+{
     fn sub(&self) -> SubGraph<Self, Self> {
-        SubGraph{
+        SubGraph {
             parent: self,
-            sub: Default::default()
+            sub: Default::default(),
         }
     }
 }
