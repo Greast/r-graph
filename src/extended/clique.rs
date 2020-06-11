@@ -1,85 +1,97 @@
-use crate::dev::orientation::Undirected;
+use crate::dev::orientation::{AddEdge, Orientation, Undirected};
 
-use crate::dev::Neighbours;
-use std::collections::{HashSet, VecDeque};
+use crate::dev::{AddVertex, GetVertex, Neighbours, Vertices, orientation};
+use crate::extended::take_random;
+use crate::wrapper::sub::{intersection, SubGraph};
+use itertools::Itertools;
+use std::collections::{HashMap, HashSet, VecDeque};
 use std::hash::Hash;
+use std::marker::PhantomData;
+use crate::dev::transform::transformers::VertexKey;
 
-pub struct CliqueIter<'a, Graph, Vk> {
-    graph: &'a Graph,
-    queue: VecDeque<&'a Vk>,
-    visited: HashSet<&'a Vk>,
-}
-
-impl<'a, Graph, Vk> CliqueIter<'a, Graph, Vk>
+fn maximal_clique<'a, G, O, T>(graph: &'a G, mut sub_set: HashSet<&'a T>) -> HashSet<&'a T>
 where
-    Vk: 'a + Eq + Hash,
-    Graph: Neighbours<'a, Undirected, Vk>,
+    T: 'a + Eq + Hash,
+    O: Orientation,
+    G: 'a + Neighbours<'a, O, T>,
 {
-    fn complete(&self, seed: &'a Vk) -> HashSet<&'a Vk> {
-        let mut clique = HashSet::default();
-        let mut queue = VecDeque::new();
-        queue.push_back(seed);
+    let mut common = sub_set
+        .iter()
+        .filter_map(|x| graph.neighbours(x))
+        .map(|x| x.into_iter().map(|x| x.1).collect::<HashSet<_>>())
+        .fold1(intersection)
+        .unwrap_or_default();
 
-        while let Some(vertex) = queue.pop_front() {
-            let connections: HashSet<_> = self
-                .graph
-                .neighbours(vertex)
-                .into_iter()
-                .flatten()
-                .map(|(_, x)| x)
-                .collect();
-
-            if connections.is_superset(&clique) {
-                clique.insert(vertex);
-                for i in connections.difference(&clique) {
-                    if self.visited.contains(i) {
-                        queue.push_front(i);
-                    } else {
-                        queue.push_back(i);
-                    }
-                }
-            }
-        }
-        clique
+    while let Some(from) = take_random(&mut common) {
+        sub_set.insert(from);
+        common = graph
+            .neighbours(from)
+            .into_iter()
+            .flatten()
+            .map(|x| x.1)
+            .filter(|x| common.contains(x))
+            .collect();
     }
+    sub_set
 }
 
-impl<'a, Graph, Vk> Iterator for CliqueIter<'a, Graph, Vk>
-where
-    Vk: 'a + Eq + Hash,
-    Graph: Neighbours<'a, Undirected, Vk>,
-{
-    type Item = HashSet<&'a Vk>;
+
+
+pub struct CliqueIter<'a, Graph, VertexKey, Orientation> {
+    graph: &'a Graph,
+    queue: VecDeque<HashSet<&'a VertexKey>>,
+    visited: HashSet<HashSet<&'a VertexKey>>,
+    phantom : PhantomData<(Orientation,)>
+}
+
+impl<'a, Graph, VertexKey, Orientation> Iterator for CliqueIter<'a, Graph, VertexKey, Orientation>
+    where
+        VertexKey: 'a + Eq + Hash,
+        Orientation: orientation::Orientation,
+        Graph: 'a + Neighbours<'a, Orientation, VertexKey>,
+        HashSet<&'a VertexKey> : Eq + Hash + Clone,{
+    type Item = HashSet<&'a VertexKey>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        let seed = self.queue.pop_front()?;
-        let mut complete = self.complete(seed);
-        while complete.is_subset(&self.visited) {
-            let seed = self.queue.pop_front()?;
-            complete = self.complete(seed);
+        let mut clique = maximal_clique(self.graph, self.queue.pop_front()?);
+        while !self.visited.insert(clique.clone()) {
+            clique = maximal_clique(self.graph, self.queue.pop_front()?);
         }
-        for i in complete.iter() {
-            if self.visited.insert(i) {
-                self.queue.push_back(i)
-            }
+        let candidates:HashMap<_, HashSet<_>> = clique.iter()
+            .filter_map(|x| self.graph.neighbours(x).map(|y| (x, y)))
+            .fold(HashMap::new(),|mut state, (&from, neighbours)|{
+                for (_, i) in neighbours{
+                    state.entry(from).or_default().insert(i);
+                }
+                state
+            });
+        for (from, mut neighbours) in candidates{
+            neighbours.insert(from);
+            self.queue.push_back(neighbours);
         }
-        complete.into()
+        clique.into()
+        
     }
 }
 
-pub trait Clique<'a, Vk>
+pub trait Clique<'a, VertexKey, Orientation>
 where
     Self: Sized,
 {
-    fn clique(&'a self, seed: &'a Vk) -> CliqueIter<'a, Self, Vk>;
+    fn clique(&'a self, seed: &'a VertexKey) -> CliqueIter<'a, Self, VertexKey, Orientation>;
 }
 
-impl<'a, Vk, Graph> Clique<'a, Vk> for Graph {
-    fn clique(&'a self, seed: &'a Vk) -> CliqueIter<'a, Self, Vk> {
+impl<'a, VertexKey, Orientation, Graph> Clique<'a, VertexKey, Orientation> for Graph
+    where
+        VertexKey : 'a + Eq + Hash{
+    fn clique(&'a self, seed: &'a VertexKey) -> CliqueIter<'a, Self, VertexKey, Orientation> {
+        let mut set = HashSet::new();
+        set.insert(seed);
         CliqueIter {
             graph: self,
-            queue: vec![seed].into(),
+            queue: vec![set].into(),
             visited: Default::default(),
+            phantom: PhantomData
         }
     }
 }

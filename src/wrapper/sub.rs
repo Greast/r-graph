@@ -12,14 +12,14 @@ pub struct SubGraph<'a, Graph, Graph2> {
     sub: Graph2,
 }
 
-impl<'a, Graph, Graph2, VertexKey> AddVertex<VertexKey> for SubGraph<'a, Graph, Graph2>
+impl<'a, Graph, Graph2, VertexKey> AddVertex<&'a VertexKey> for SubGraph<'a, Graph, Graph2>
 where
     Graph: GetVertex<VertexKey>,
-    Graph2: AddVertex<(VertexKey, ())>,
+    Graph2: AddVertex<(&'a VertexKey, ())>,
 {
-    type Key = <Graph2 as AddVertex<(VertexKey, ())>>::Key;
+    type Key = <Graph2 as AddVertex<(&'a VertexKey, ())>>::Key;
 
-    fn add_vertex(&mut self, vertex: VertexKey) -> Result<Self::Key, VertexKey> {
+    fn add_vertex(&mut self, vertex: &'a VertexKey) -> Result<Self::Key, &'a VertexKey> {
         if self.parent.get_vertex(&vertex).is_none() {
             Err(vertex)
         } else {
@@ -138,6 +138,14 @@ where
     }
 }
 
+pub fn intersection<T>(mut x: HashSet<T>, y: HashSet<T>) -> HashSet<T>
+where
+    T: Eq + Hash,
+{
+    x.retain(|x| y.contains(x));
+    x
+}
+
 impl<'a, Graph, Graph2> SubGraph<'a, Graph, Graph2> {
     pub fn adjacent<'b, Orientation, VertexKey>(
         &'b self,
@@ -174,15 +182,7 @@ impl<'a, Graph, Graph2> SubGraph<'a, Graph, Graph2> {
             .into_iter()
             .filter_map(|x| self.parent.neighbours(x))
             .map(|x| x.into_iter().map(|x| x.1).collect::<HashSet<_>>())
-            .fold1(|x, y| {
-                let mut intersection = HashSet::new();
-                for i in x {
-                    if y.contains(i) {
-                        intersection.insert(i);
-                    }
-                }
-                intersection
-            })
+            .fold1(intersection)
             .unwrap_or_default()
     }
 }
