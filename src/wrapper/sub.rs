@@ -2,6 +2,7 @@ use crate::dev::orientation::{AddEdge, Orientation};
 use crate::dev::{
     orientation, AddVertex, Edges, GetEdge, GetEdgeTo, GetVertex, Neighbours, Vertices,
 };
+use itertools::Itertools;
 use std::collections::HashSet;
 use std::convert::identity;
 use std::hash::Hash;
@@ -11,14 +12,14 @@ pub struct SubGraph<'a, Graph, Graph2> {
     sub: Graph2,
 }
 
-impl<'a, Graph, Graph2, VertexKey> AddVertex<VertexKey> for SubGraph<'a, Graph, Graph2>
+impl<'a, Graph, Graph2, VertexKey> AddVertex<&'a VertexKey> for SubGraph<'a, Graph, Graph2>
 where
     Graph: GetVertex<VertexKey>,
-    Graph2: AddVertex<(VertexKey, ())>,
+    Graph2: AddVertex<(&'a VertexKey, ())>,
 {
-    type Key = <Graph2 as AddVertex<(VertexKey, ())>>::Key;
+    type Key = <Graph2 as AddVertex<(&'a VertexKey, ())>>::Key;
 
-    fn add_vertex(&mut self, vertex: VertexKey) -> Result<Self::Key, VertexKey> {
+    fn add_vertex(&mut self, vertex: &'a VertexKey) -> Result<Self::Key, &'a VertexKey> {
         if self.parent.get_vertex(&vertex).is_none() {
             Err(vertex)
         } else {
@@ -137,16 +138,23 @@ where
     }
 }
 
+pub fn intersection<T>(mut x: HashSet<T>, y: HashSet<T>) -> HashSet<T>
+where
+    T: Eq + Hash,
+{
+    x.retain(|x| y.contains(x));
+    x
+}
+
 impl<'a, Graph, Graph2> SubGraph<'a, Graph, Graph2> {
-    pub fn adjacent<Orientation, VertexKey>(
-        &'a self,
-    ) -> impl IntoIterator<
-        Item = (
-            <Graph as Neighbours<'a, Orientation, VertexKey>>::Edge,
-            &'a VertexKey,
-        ),
-    >
+    pub fn adjacent<'b, Orientation, VertexKey>(
+        &'b self,
+    ) -> HashSet<(
+        <Graph as Neighbours<'a, Orientation, VertexKey>>::Edge,
+        &VertexKey,
+    )>
     where
+        'b: 'a,
         VertexKey: 'a + Eq + Hash,
         Orientation: orientation::Orientation,
         Graph: Neighbours<'a, Orientation, VertexKey>,
@@ -160,21 +168,40 @@ impl<'a, Graph, Graph2> SubGraph<'a, Graph, Graph2> {
             .flat_map(identity)
             .collect::<HashSet<_>>()
     }
+
+    pub fn common_neighbours<'b, Orientation, VertexKey>(&'b self) -> HashSet<&VertexKey>
+    where
+        'b: 'a,
+        VertexKey: 'a + Eq + Hash,
+        Orientation: orientation::Orientation,
+        Graph: Neighbours<'a, Orientation, VertexKey>,
+        Graph2: Vertices<'a, Item = VertexKey>,
+        <Graph as Neighbours<'a, Orientation, VertexKey>>::Edge: Eq + Hash,
+    {
+        self.vertices()
+            .into_iter()
+            .filter_map(|x| self.parent.neighbours(x))
+            .map(|x| x.into_iter().map(|x| x.1).collect::<HashSet<_>>())
+            .fold1(intersection)
+            .unwrap_or_default()
+    }
 }
 
 pub trait Sub<VertexKeyIntoIter, EdgeKeyIntoIter>
-    where
-        Self : Sized{
+where
+    Self: Sized,
+{
     fn sub(&self) -> SubGraph<Self, Self>;
 }
 
 impl<Graph, VertexKeyIntoIter, EdgeKeyIntoIter> Sub<VertexKeyIntoIter, EdgeKeyIntoIter> for Graph
-    where
-        Graph : Default{
+where
+    Graph: Default,
+{
     fn sub(&self) -> SubGraph<Self, Self> {
-        SubGraph{
+        SubGraph {
             parent: self,
-            sub: Default::default()
+            sub: Default::default(),
         }
     }
 }
