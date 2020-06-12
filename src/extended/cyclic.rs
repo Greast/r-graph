@@ -1,20 +1,12 @@
 use crate::dev::orientation::{Directed, Undirected};
 use crate::dev::{Neighbours, Vertices};
+use crate::extended::take_random;
 use std::collections::{HashSet, VecDeque};
 use std::fmt::Debug;
 use std::hash::Hash;
 
 trait Cycle<'a, Orientation, Vertex> {
     fn cycle(&'a self) -> bool;
-}
-
-fn take_random<V>(hash_set: &mut HashSet<V>) -> Option<V>
-where
-    V: Clone + Eq + Hash,
-{
-    let value = hash_set.iter().next()?.clone();
-    hash_set.remove(&value);
-    Some(value)
 }
 
 impl<'a, Vertex, Graph> Cycle<'a, Directed, Vertex> for Graph
