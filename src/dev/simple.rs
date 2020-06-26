@@ -545,3 +545,25 @@ where
         }
     }
 }
+#[cfg(test)]
+mod tests {
+    extern crate test;
+    use super::*;
+    use test::Bencher;
+    use crate::wrapper::oriented::Orient;
+
+
+    #[bench]
+    fn add_vertex(b: &mut Bencher){
+        let mut graph:Simple<_,_,usize,()> = Simple::default();
+        b.iter(|| graph.add_vertex((0,())))
+    }
+    #[bench]
+    fn add_edge(b: &mut Bencher){
+        let mut graph:Simple<_,_,usize,()> = Simple::default();
+        let mut graph = graph.orient(Directed);
+        graph.add_vertex((0,()));
+        graph.add_vertex((1,()));
+        b.iter(|| graph.add_edge(&0, &1, (0, ())))
+    }
+}
